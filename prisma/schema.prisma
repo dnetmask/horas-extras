@@ -1,0 +1,154 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Rol {
+  ingeniero
+  lider
+  gerencia
+  admin
+}
+
+enum EstadoHorasExtra {
+  pendiente_lider
+  pendiente_gerencia
+  aprobada
+  rechazada
+}
+
+model Usuario {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  nombre        String
+  azureObjectId String?   @unique @map("azure_object_id")
+  rol           Rol       @default(ingeniero)
+  liderId       String?   @map("lider_id")
+  lider         Usuario?  @relation("LiderDeIngeniero", fields: [liderId], references: [id])
+  ingenieros    Usuario[] @relation("LiderDeIngeniero")
+  activo        Boolean   @default(true)
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  horasExtra                HorasExtra[]   @relation("IngenieroDeRegistro")
+  aprobacionesLider         HorasExtra[]   @relation("LiderAprobador")
+  aprobacionesGerencia      HorasExtra[]   @relation("GerenciaAprobador")
+  compensaciones            Compensacion[] @relation("IngenieroDeCompensacion")
+  compensacionesRegistradas Compensacion[] @relation("RegistradoPor")
+  auditLogs                 AuditLog[]
+
+  @@map("usuarios")
+}
+
+// Tarifas de recargo vigentes a partir de una fecha. Ley colombiana: los
+// porcentajes y ventanas horarias cambian por reforma (ver Ley 2101/2021 y
+// Ley 2466/2025) - por eso van versionados en lugar de hardcodeados.
+model RecargoRuleSet {
+  id                  String   @id @default(uuid())
+  vigenteDesde        DateTime @map("vigente_desde") @db.Date
+  horaInicioDiurna    String   @map("hora_inicio_diurna") // "06:00"
+  horaFinDiurna       String   @map("hora_fin_diurna") // "19:00"
+  pctExtraDiurna      Decimal  @map("pct_extra_diurna") @db.Decimal(5, 4)
+  pctExtraNocturna    Decimal  @map("pct_extra_nocturna") @db.Decimal(5, 4)
+  pctDominicalFestivo Decimal  @map("pct_dominical_festivo") @db.Decimal(5, 4)
+  nota                String?
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  @@map("recargo_rule_sets")
+}
+
+model Festivo {
+  id     String   @id @default(uuid())
+  fecha  DateTime @unique @db.Date
+  nombre String
+
+  @@map("festivos")
+}
+
+model HorasExtra {
+  id          String  @id @default(uuid())
+  ingenieroId String  @map("ingeniero_id")
+  ingeniero   Usuario @relation("IngenieroDeRegistro", fields: [ingenieroId], references: [id])
+
+  fecha      DateTime @db.Date
+  horaInicio String   @map("hora_inicio") // "HH:MM"
+  horaFin    String   @map("hora_fin") // "HH:MM", puede cruzar medianoche
+  caso       String?
+  ot         String?
+  obra       String?
+
+  estado               EstadoHorasExtra @default(pendiente_lider)
+  liderAprobadorId     String?          @map("lider_aprobador_id")
+  liderAprobador       Usuario?         @relation("LiderAprobador", fields: [liderAprobadorId], references: [id])
+  liderRespondidoEn    DateTime?        @map("lider_respondido_en")
+  gerenciaAprobadorId  String?          @map("gerencia_aprobador_id")
+  gerenciaAprobador    Usuario?         @relation("GerenciaAprobador", fields: [gerenciaAprobadorId], references: [id])
+  gerenciaRespondidoEn DateTime?        @map("gerencia_respondido_en")
+  motivoRechazo        String?          @map("motivo_rechazo")
+
+  // Calculadas al guardar/aprobar, con el RecargoRuleSet vigente en `fecha`.
+  horasExtraDiurnaOrd       Decimal @default(0) @map("horas_extra_diurna_ord") @db.Decimal(5, 2)
+  horasExtraNocturnaOrd     Decimal @default(0) @map("horas_extra_nocturna_ord") @db.Decimal(5, 2)
+  horasExtraDiurnaDomFest   Decimal @default(0) @map("horas_extra_diurna_domfest") @db.Decimal(5, 2)
+  horasExtraNocturnaDomFest Decimal @default(0) @map("horas_extra_nocturna_domfest") @db.Decimal(5, 2)
+  horasTotales              Decimal @default(0) @map("horas_totales") @db.Decimal(5, 2)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  compensaciones         Compensacion[]
+  notificacionesEnviadas NotificacionEnviada[]
+
+  @@index([ingenieroId])
+  @@index([estado])
+  @@index([fecha])
+  @@map("horas_extra")
+}
+
+model Compensacion {
+  id                String      @id @default(uuid())
+  ingenieroId       String      @map("ingeniero_id")
+  ingeniero         Usuario     @relation("IngenieroDeCompensacion", fields: [ingenieroId], references: [id])
+  horasExtraId      String?     @map("horas_extra_id")
+  horasExtra        HorasExtra? @relation(fields: [horasExtraId], references: [id])
+  horas             Decimal     @db.Decimal(5, 2)
+  fechaCompensacion DateTime    @map("fecha_compensacion") @db.Date
+  registradoPorId   String      @map("registrado_por_id")
+  registradoPor     Usuario     @relation("RegistradoPor", fields: [registradoPorId], references: [id])
+  createdAt         DateTime    @default(now()) @map("created_at")
+
+  @@index([ingenieroId])
+  @@map("compensaciones")
+}
+
+model AuditLog {
+  id           String   @id @default(uuid())
+  tabla        String
+  registroId   String   @map("registro_id")
+  usuarioId    String   @map("usuario_id")
+  usuario      Usuario  @relation(fields: [usuarioId], references: [id])
+  accion       String
+  campo        String?
+  valorAntes   String?  @map("valor_antes")
+  valorDespues String?  @map("valor_despues")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([tabla, registroId])
+  @@map("audit_log")
+}
+
+// Evita reenviar la alerta de 45 dias todos los dias para el mismo registro.
+model NotificacionEnviada {
+  id           String     @id @default(uuid())
+  horasExtraId String     @map("horas_extra_id")
+  horasExtra   HorasExtra @relation(fields: [horasExtraId], references: [id])
+  tipo         String // "alerta_45_dias"
+  enviadaEn    DateTime   @default(now()) @map("enviada_en")
+
+  @@index([horasExtraId, tipo])
+  @@map("notificaciones_enviadas")
+}

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Horas Extra - Netmask</title>
+<link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1>Horas Extra · Netmask</h1>
+    <div id="usuarioActual" class="usuario-actual"></div>
+  </header>
+
+  <nav id="nav" class="nav"></nav>
+
+  <main id="app" class="app"></main>
+
+  <template id="tpl-login">
+    <div class="card login-card">
+      <h2>Inicia sesión</h2>
+      <p>Usa tu cuenta corporativa de Netmask (Microsoft).</p>
+      <a class="btn btn-primary" href="/auth/login">Iniciar sesión con Microsoft</a>
+      <div id="devLoginBox" class="dev-login" hidden>
+        <hr />
+        <p><strong>Modo desarrollo</strong> (DEV_AUTH_BYPASS activo) - entra sin SSO real:</p>
+        <input id="devLoginEmail" type="email" placeholder="nombre@netmask.co" />
+        <button class="btn" onclick="loginDev()">Entrar como este usuario</button>
+      </div>
+    </div>
+  </template>
+
+  <script src="js/api.js"></script>
+  <script src="js/vistaMisHoras.js"></script>
+  <script src="js/vistaAprobaciones.js"></script>
+  <script src="js/vistaBanco.js"></script>
+  <script src="js/vistaAdmin.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
