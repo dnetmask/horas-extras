@@ -109,14 +109,20 @@ model HorasExtra {
   @@map("horas_extra")
 }
 
+// Solicitud de un ingeniero para USAR (tomar como permiso) horas de su banco
+// de horas compensatorias ya aprobadas. Lleva fecha + horario del permiso;
+// `horas` se calcula del horario y se descuenta del saldo disponible (ver
+// src/lib/saldoHoras.js).
 model Compensacion {
   id                String      @id @default(uuid())
   ingenieroId       String      @map("ingeniero_id")
   ingeniero         Usuario     @relation("IngenieroDeCompensacion", fields: [ingenieroId], references: [id])
   horasExtraId      String?     @map("horas_extra_id")
   horasExtra        HorasExtra? @relation(fields: [horasExtraId], references: [id])
-  horas             Decimal     @db.Decimal(5, 2)
   fechaCompensacion DateTime    @map("fecha_compensacion") @db.Date
+  horaInicio        String      @map("hora_inicio") // "HH:MM"
+  horaFin           String      @map("hora_fin") // "HH:MM"
+  horas             Decimal     @db.Decimal(5, 2)
   registradoPorId   String      @map("registrado_por_id")
   registradoPor     Usuario     @relation("RegistradoPor", fields: [registradoPorId], references: [id])
   createdAt         DateTime    @default(now()) @map("created_at")

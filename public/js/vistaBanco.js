@@ -11,24 +11,26 @@ async function renderBanco(contenedor) {
     </div>
 
     <div class="card">
-      <h2>Registrar compensación (tiempo libre tomado)</h2>
+      <h2>Solicitar uso de horas disponibles</h2>
+      <p style="font-size:0.85rem;color:#556">Indica la fecha y el horario del permiso. Las horas se calculan solas a partir del horario y se descuentan de tu saldo disponible.</p>
       <form id="formCompensacion">
         <div class="form-grid">
-          <label>Horas <input type="number" step="0.25" min="0.25" name="horas" required /></label>
           <label>Fecha <input type="date" name="fechaCompensacion" required /></label>
+          <label>Hora inicio <input type="time" name="horaInicio" required /></label>
+          <label>Hora fin <input type="time" name="horaFin" required /></label>
         </div>
-        <button class="btn btn-primary" type="submit">Registrar</button>
+        <button class="btn btn-primary" type="submit">Solicitar</button>
         <div class="error" id="errorFormCompensacion"></div>
       </form>
     </div>
 
     <div class="card">
-      <h2>Historial de compensaciones</h2>
+      <h2>Historial de permisos tomados</h2>
       ${
         banco.historial.length === 0
-          ? '<p>Sin compensaciones registradas todavía.</p>'
-          : `<table><thead><tr><th>Fecha</th><th>Horas</th></tr></thead><tbody>
-              ${banco.historial.map((c) => `<tr><td>${c.fechaCompensacion.slice(0, 10)}</td><td>${c.horas}h</td></tr>`).join('')}
+          ? '<p>Sin permisos registrados todavía.</p>'
+          : `<table><thead><tr><th>Fecha</th><th>Horario</th><th>Horas</th></tr></thead><tbody>
+              ${banco.historial.map((c) => `<tr><td>${c.fechaCompensacion.slice(0, 10)}</td><td>${c.horaInicio}-${c.horaFin}</td><td>${c.horas}h</td></tr>`).join('')}
             </tbody></table>`
       }
     </div>

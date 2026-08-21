@@ -36,6 +36,32 @@ Alguien con permisos de administrador en el tenant de Netmask debe:
 4. Copiar el Application (client) ID → `AZURE_CLIENT_ID`, y el Directory
    (tenant) ID → `AZURE_TENANT_ID`.
 
+Crear este App Registration y darle consentimiento **no afecta a ningún otro
+usuario ni sistema de Netmask** — es un objeto nuevo e independiente en el
+directorio, no toca otras apps, sesiones activas ni políticas existentes.
+
+**Importante — acotar el alcance de `Mail.Send`:** tal como queda configurado
+arriba, el permiso es de tipo *Application*, lo que por defecto le permite a
+esta app enviar correo **haciéndose pasar por cualquier buzón del tenant**,
+no solo por el de `GRAPH_MAIL_FROM`. Para que solo pueda enviar como el buzón
+de notificaciones, un admin de Exchange Online debe correr (una sola vez,
+con el Client ID del paso 4 y el buzón real):
+
+```powershell
+Connect-ExchangeOnline
+New-ApplicationAccessPolicy `
+  -AppId "<AZURE_CLIENT_ID>" `
+  -PolicyScopeGroupId "notificaciones@netmask.co" `
+  -AccessRight RestrictAccess `
+  -Description "Horas Extra - solo puede enviar como notificaciones@netmask.co"
+# Verificar que quedo bien:
+Test-ApplicationAccessPolicy -AppId "<AZURE_CLIENT_ID>" -Identity "notificaciones@netmask.co"   # debe decir "Granted"
+Test-ApplicationAccessPolicy -AppId "<AZURE_CLIENT_ID>" -Identity "cualquier-otro@netmask.co"    # debe decir "Denied"
+```
+
+Sin este paso el permiso sigue siendo válido (la app funciona igual), solo
+queda más amplio de lo necesario.
+
 Si mientras tanto se quiere probar la app sin esto listo, usar
 `DEV_AUTH_BYPASS=true` en un entorno de prueba (nunca en producción) — habilita
 `/auth/dev-login?email=...` para entrar sin SSO real.

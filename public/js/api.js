@@ -37,6 +37,7 @@ const api = {
 
   miBanco: () => apiFetch('/api/compensaciones/mias'),
   registrarCompensacion: (datos) => apiFetch('/api/compensaciones', { method: 'POST', body: JSON.stringify(datos) }),
+  bancoDeTodos: () => apiFetch('/api/compensaciones/todas'),
 
   usuarios: () => apiFetch('/api/usuarios'),
   crearUsuario: (datos) => apiFetch('/api/usuarios', { method: 'POST', body: JSON.stringify(datos) }),

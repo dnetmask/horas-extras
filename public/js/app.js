@@ -4,6 +4,7 @@ const VISTAS = {
   'mis-horas': { titulo: 'Mis horas extra', render: renderMisHoras, roles: ['ingeniero', 'lider', 'gerencia', 'admin'] },
   aprobaciones: { titulo: 'Aprobaciones', render: renderAprobaciones, roles: ['lider', 'gerencia', 'admin'] },
   banco: { titulo: 'Mi banco de horas', render: renderBanco, roles: ['ingeniero', 'lider', 'gerencia', 'admin'] },
+  equipo: { titulo: 'Horas del equipo', render: renderEquipo, roles: ['gerencia', 'admin'] },
   admin: { titulo: 'Administración', render: renderAdmin, roles: ['admin'] },
 };
 
