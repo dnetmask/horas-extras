@@ -35,7 +35,7 @@ model Usuario {
   updatedAt     DateTime  @updatedAt @map("updated_at")
 
   horasExtra                HorasExtra[]   @relation("IngenieroDeRegistro")
-  aprobacionesLider         HorasExtra[]   @relation("LiderAprobador")
+  solicitudesComoLider      HorasExtra[]   @relation("LiderDeSolicitud")
   aprobacionesGerencia      HorasExtra[]   @relation("GerenciaAprobador")
   compensaciones            Compensacion[] @relation("IngenieroDeCompensacion")
   compensacionesRegistradas Compensacion[] @relation("RegistradoPor")
@@ -81,14 +81,16 @@ model HorasExtra {
   ot         String?
   obra       String?
 
-  estado               EstadoHorasExtra @default(pendiente_lider)
-  liderAprobadorId     String?          @map("lider_aprobador_id")
-  liderAprobador       Usuario?         @relation("LiderAprobador", fields: [liderAprobadorId], references: [id])
-  liderRespondidoEn    DateTime?        @map("lider_respondido_en")
-  gerenciaAprobadorId  String?          @map("gerencia_aprobador_id")
-  gerenciaAprobador    Usuario?         @relation("GerenciaAprobador", fields: [gerenciaAprobadorId], references: [id])
-  gerenciaRespondidoEn DateTime?        @map("gerencia_respondido_en")
-  motivoRechazo        String?          @map("motivo_rechazo")
+  estado    EstadoHorasExtra @default(pendiente_lider)
+  // Lider elegido por el ingeniero al crear la solicitud (casilla en
+  // "Registrar horas extra") - es a quien le llega la pre-aprobacion.
+  liderId              String    @map("lider_id")
+  lider                Usuario   @relation("LiderDeSolicitud", fields: [liderId], references: [id])
+  liderRespondidoEn    DateTime? @map("lider_respondido_en")
+  gerenciaAprobadorId  String?   @map("gerencia_aprobador_id")
+  gerenciaAprobador    Usuario?  @relation("GerenciaAprobador", fields: [gerenciaAprobadorId], references: [id])
+  gerenciaRespondidoEn DateTime? @map("gerencia_respondido_en")
+  motivoRechazo        String?   @map("motivo_rechazo")
 
   // Calculadas al guardar/aprobar, con el RecargoRuleSet vigente en `fecha`.
   horasExtraDiurnaOrd       Decimal @default(0) @map("horas_extra_diurna_ord") @db.Decimal(5, 2)

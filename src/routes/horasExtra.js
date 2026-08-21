@@ -11,7 +11,7 @@ const { solicitudAprobacion } = require('../lib/plantillasCorreo');
 
 const router = express.Router();
 
-const CAMPOS_EDITABLES = ['fecha', 'horaInicio', 'horaFin', 'caso', 'ot', 'obra'];
+const CAMPOS_EDITABLES = ['fecha', 'horaInicio', 'horaFin', 'caso', 'ot', 'obra', 'liderId'];
 
 function validarEntrada(body) {
   const { fecha, horaInicio, horaFin } = body;
@@ -32,10 +32,18 @@ async function calcular(body) {
   });
 }
 
+async function buscarLiderValido(liderId) {
+  if (!liderId) return null;
+  const lider = await prisma.usuario.findUnique({ where: { id: liderId } });
+  if (!lider || lider.rol !== 'lider' || !lider.activo) return null;
+  return lider;
+}
+
 router.get('/mios', requireAuth, async (req, res, next) => {
   try {
     const registros = await prisma.horasExtra.findMany({
       where: { ingenieroId: req.session.usuario.id },
+      include: { lider: { select: { nombre: true } } },
       orderBy: { fecha: 'desc' },
     });
     res.json(registros);
@@ -49,6 +57,9 @@ router.post('/', requireAuth, async (req, res, next) => {
     const error = validarEntrada(req.body);
     if (error) return res.status(400).json({ error });
 
+    const lider = await buscarLiderValido(req.body.liderId);
+    if (!lider) return res.status(400).json({ error: 'Debes elegir un lider valido para la pre-aprobacion' });
+
     const calculo = await calcular(req.body);
     const usuario = await prisma.usuario.findUnique({ where: { id: req.session.usuario.id } });
 
@@ -56,6 +67,7 @@ router.post('/', requireAuth, async (req, res, next) => {
       const creado = await tx.horasExtra.create({
         data: {
           ingenieroId: usuario.id,
+          liderId: lider.id,
           fecha: new Date(`${req.body.fecha}T00:00:00Z`),
           horaInicio: req.body.horaInicio,
           horaFin: req.body.horaFin,
@@ -78,20 +90,17 @@ router.post('/', requireAuth, async (req, res, next) => {
       return creado;
     });
 
-    if (usuario.liderId) {
-      const lider = await prisma.usuario.findUnique({ where: { id: usuario.liderId } });
-      if (lider?.email) {
-        const correo = solicitudAprobacion({ registro, ingenieroNombre: usuario.nombre, paraQuien: 'líder' });
-        enviarCorreo({ para: lider.email, ...correo }).catch((err) =>
-          console.error('No se pudo notificar al lider:', err.message)
-        );
-      }
+    // Pre-aprobacion: le llega al lider elegido en el formulario. Cuando el
+    // lider apruebe, la aprobacion final le llega a todos los usuarios con
+    // rol "gerencia" (el Gerente de Ingenieria) - ver src/routes/aprobaciones.js.
+    if (lider.email) {
+      const correo = solicitudAprobacion({ registro, ingenieroNombre: usuario.nombre, paraQuien: 'líder' });
+      enviarCorreo({ para: lider.email, ...correo }).catch((err) =>
+        console.error('No se pudo notificar al lider:', err.message)
+      );
     }
 
-    res.status(201).json({
-      ...registro,
-      aviso: usuario.liderId ? undefined : 'No tienes un lider asignado - pide a un admin que lo configure para que tu solicitud pueda avanzar.',
-    });
+    res.status(201).json(registro);
   } catch (err) {
     next(err);
   }
@@ -102,10 +111,7 @@ router.get('/:id', requireAuth, async (req, res, next) => {
     const registro = await prisma.horasExtra.findUnique({ where: { id: req.params.id } });
     if (!registro) return res.status(404).json({ error: 'No existe' });
     const { id: uid, rol } = req.session.usuario;
-    const puedeVer =
-      registro.ingenieroId === uid ||
-      registro.liderAprobadorId === uid ||
-      ['lider', 'gerencia', 'admin'].includes(rol);
+    const puedeVer = registro.ingenieroId === uid || registro.liderId === uid || ['lider', 'gerencia', 'admin'].includes(rol);
     if (!puedeVer) return res.status(403).json({ error: 'No autorizado' });
     res.json(registro);
   } catch (err) {
@@ -133,6 +139,13 @@ router.patch('/:id', requireAuth, async (req, res, next) => {
     const error = validarEntrada(merge);
     if (error) return res.status(400).json({ error });
 
+    let liderId = registro.liderId;
+    if (datosNuevos.liderId && datosNuevos.liderId !== registro.liderId) {
+      const lider = await buscarLiderValido(datosNuevos.liderId);
+      if (!lider) return res.status(400).json({ error: 'Lider invalido' });
+      liderId = lider.id;
+    }
+
     const calculo = await calcular(merge);
 
     const actualizado = await prisma.$transaction(async (tx) => {
@@ -146,6 +159,7 @@ router.patch('/:id', requireAuth, async (req, res, next) => {
           caso: datosNuevos.caso ?? registro.caso,
           ot: datosNuevos.ot ?? registro.ot,
           obra: datosNuevos.obra ?? registro.obra,
+          liderId,
           horasExtraDiurnaOrd: calculo.horasExtraDiurnaOrd,
           horasExtraNocturnaOrd: calculo.horasExtraNocturnaOrd,
           horasExtraDiurnaDomFest: calculo.horasExtraDiurnaDomFest,

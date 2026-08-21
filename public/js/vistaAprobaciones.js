@@ -12,7 +12,7 @@ async function renderAprobaciones(contenedor) {
       <h2>Pendientes de aprobación</h2>
       <table>
         <thead>
-          <tr><th>Ingeniero</th><th>Fecha/hora</th><th>Total</th><th>Etapa</th><th>Obra</th><th></th></tr>
+          <tr><th>Ingeniero</th><th>Líder</th><th>Fecha/hora</th><th>Total</th><th>Etapa</th><th>Obra</th><th></th></tr>
         </thead>
         <tbody id="tbodyAprobaciones">
           ${pendientes
@@ -20,6 +20,7 @@ async function renderAprobaciones(contenedor) {
               (r) => `
             <tr data-id="${r.id}">
               <td>${r.ingeniero.nombre}</td>
+              <td>${r.lider ? r.lider.nombre : ''}</td>
               <td>${r.fecha.slice(0, 10)} · ${r.horaInicio}-${r.horaFin}</td>
               <td>${r.horasTotales}h</td>
               <td>${badgeEstado(r.estado)}</td>

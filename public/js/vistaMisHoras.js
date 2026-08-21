@@ -16,7 +16,8 @@ function filaFechaHora(r) {
 
 async function renderMisHoras(contenedor) {
   contenedor.innerHTML = '<p>Cargando...</p>';
-  const [registros] = await Promise.all([api.misHoras()]);
+  const [registros, usuarios] = await Promise.all([api.misHoras(), api.usuarios()]);
+  const lideres = usuarios.filter((u) => u.rol === 'lider' && u.activo);
 
   contenedor.innerHTML = `
     <div class="card">
@@ -26,11 +27,18 @@ async function renderMisHoras(contenedor) {
           <label>Fecha <input type="date" name="fecha" required /></label>
           <label>Hora inicio <input type="time" name="horaInicio" required /></label>
           <label>Hora fin <input type="time" name="horaFin" required /></label>
+          <label>Líder (pre-aprobación)
+            <select name="liderId" required>
+              <option value="" disabled selected>Selecciona un líder</option>
+              ${lideres.map((l) => `<option value="${l.id}">${l.nombre}</option>`).join('')}
+            </select>
+          </label>
           <label># Caso <input type="text" name="caso" /></label>
           <label># OT <input type="text" name="ot" /></label>
           <label>Obra / proyecto <input type="text" name="obra" /></label>
         </div>
-        <button class="btn btn-primary" type="submit">Enviar para aprobación</button>
+        ${lideres.length === 0 ? '<p class="aviso">Todavía no hay ningún usuario con rol "Líder" configurado - pide a un admin que cree uno antes de poder enviar tu solicitud.</p>' : ''}
+        <button class="btn btn-primary" type="submit" ${lideres.length === 0 ? 'disabled' : ''}>Enviar para pre-aprobación</button>
         <div class="error" id="errorFormHoras"></div>
       </form>
     </div>
@@ -47,8 +55,7 @@ async function renderMisHoras(contenedor) {
     const errorBox = document.getElementById('errorFormHoras');
     errorBox.textContent = '';
     try {
-      const creado = await api.crearHoras(datos);
-      if (creado.aviso) alert(creado.aviso);
+      await api.crearHoras(datos);
       renderMisHoras(contenedor);
     } catch (err) {
       errorBox.textContent = err.message;
@@ -60,7 +67,7 @@ function renderTablaMisHoras(registros) {
   return `
     <table>
       <thead>
-        <tr><th>Fecha/hora</th><th>Total</th><th>Diurna</th><th>Nocturna</th><th>Dom/Fest diurna</th><th>Dom/Fest nocturna</th><th>Estado</th></tr>
+        <tr><th>Fecha/hora</th><th>Total</th><th>Diurna</th><th>Nocturna</th><th>Dom/Fest diurna</th><th>Dom/Fest nocturna</th><th>Líder</th><th>Estado</th></tr>
       </thead>
       <tbody>
         ${registros
@@ -73,6 +80,7 @@ function renderTablaMisHoras(registros) {
             <td>${r.horasExtraNocturnaOrd}h</td>
             <td>${r.horasExtraDiurnaDomFest}h</td>
             <td>${r.horasExtraNocturnaDomFest}h</td>
+            <td>${r.lider ? r.lider.nombre : ''}</td>
             <td>${badgeEstado(r.estado)}${r.motivoRechazo ? `<div style="font-size:0.8rem;color:#c0362c">${r.motivoRechazo}</div>` : ''}</td>
           </tr>`
           )

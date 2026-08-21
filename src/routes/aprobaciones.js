@@ -16,13 +16,16 @@ router.get('/pendientes', requireAuth, requireRole('lider', 'gerencia', 'admin')
     if (rol === 'admin') {
       where = { estado: { in: ['pendiente_lider', 'pendiente_gerencia'] } };
     } else if (rol === 'lider') {
-      where = { estado: 'pendiente_lider', ingeniero: { liderId: id } };
+      where = { estado: 'pendiente_lider', liderId: id };
     } else {
       where = { estado: 'pendiente_gerencia' };
     }
     const registros = await prisma.horasExtra.findMany({
       where,
-      include: { ingeniero: { select: { nombre: true, email: true } } },
+      include: {
+        ingeniero: { select: { nombre: true, email: true } },
+        lider: { select: { nombre: true } },
+      },
       orderBy: { fecha: 'asc' },
     });
     res.json(registros);
@@ -47,8 +50,8 @@ router.post('/:id/decidir', requireAuth, requireRole('lider', 'gerencia', 'admin
     const { id: uid, rol, nombre } = req.session.usuario;
 
     if (registro.estado === 'pendiente_lider') {
-      if (rol === 'lider' && registro.ingeniero.liderId !== uid) {
-        return res.status(403).json({ error: 'No eres el lider asignado a este ingeniero' });
+      if (rol === 'lider' && registro.liderId !== uid) {
+        return res.status(403).json({ error: 'No eres el lider elegido para esta solicitud' });
       }
     } else if (registro.estado === 'pendiente_gerencia') {
       if (!['gerencia', 'admin'].includes(rol)) {
@@ -67,7 +70,6 @@ router.post('/:id/decidir', requireAuth, requireRole('lider', 'gerencia', 'admin
         data: etapaLider
           ? {
               estado: nuevoEstado,
-              liderAprobadorId: uid,
               liderRespondidoEn: new Date(),
               motivoRechazo: decision === 'rechazar' ? motivo || null : null,
             }
