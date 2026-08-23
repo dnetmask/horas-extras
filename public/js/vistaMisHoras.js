@@ -35,8 +35,8 @@ async function renderMisHoras(contenedor) {
               ${lideres.map((l) => `<option value="${l.id}">${l.nombre}${l.rol !== 'lider' ? ` (${l.rol})` : ''}</option>`).join('')}
             </select>
           </label>
-          <label># Caso <input type="text" name="caso" /></label>
-          <label># OT <input type="text" name="ot" /></label>
+          <label># Caso <input type="text" name="caso" required /></label>
+          <label># OT <input type="text" name="ot" required /></label>
           <label>Obra / proyecto <input type="text" name="obra" /></label>
         </div>
         ${lideres.length === 0 ? '<p class="aviso">Todavía no hay ningún líder disponible (rol Líder, Gerencia o Admin) - pide a un admin que configure uno antes de poder enviar tu solicitud.</p>' : ''}

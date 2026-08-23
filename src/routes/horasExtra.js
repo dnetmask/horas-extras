@@ -14,11 +14,13 @@ const router = express.Router();
 const CAMPOS_EDITABLES = ['fecha', 'horaInicio', 'horaFin', 'caso', 'ot', 'obra', 'liderId'];
 
 function validarEntrada(body) {
-  const { fecha, horaInicio, horaFin } = body;
+  const { fecha, horaInicio, horaFin, caso, ot } = body;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha || '')) return 'fecha invalida (usar YYYY-MM-DD)';
   if (!/^\d{2}:\d{2}$/.test(horaInicio || '')) return 'horaInicio invalida (usar HH:MM)';
   if (!/^\d{2}:\d{2}$/.test(horaFin || '')) return 'horaFin invalida (usar HH:MM)';
   if (horaInicio === horaFin) return 'horaInicio y horaFin no pueden ser iguales';
+  if (!String(caso || '').trim()) return '# Caso es obligatorio';
+  if (!String(ot || '').trim()) return '# OT es obligatorio';
   return null;
 }
 
@@ -140,6 +142,8 @@ router.patch('/:id', requireAuth, async (req, res, next) => {
       fecha: datosNuevos.fecha || registro.fecha.toISOString().slice(0, 10),
       horaInicio: datosNuevos.horaInicio || registro.horaInicio,
       horaFin: datosNuevos.horaFin || registro.horaFin,
+      caso: datosNuevos.caso ?? registro.caso,
+      ot: datosNuevos.ot ?? registro.ot,
     };
     const error = validarEntrada(merge);
     if (error) return res.status(400).json({ error });
@@ -161,8 +165,8 @@ router.patch('/:id', requireAuth, async (req, res, next) => {
           fecha: new Date(`${merge.fecha}T00:00:00Z`),
           horaInicio: merge.horaInicio,
           horaFin: merge.horaFin,
-          caso: datosNuevos.caso ?? registro.caso,
-          ot: datosNuevos.ot ?? registro.ot,
+          caso: merge.caso,
+          ot: merge.ot,
           obra: datosNuevos.obra ?? registro.obra,
           liderId,
           horasExtraDiurnaOrd: calculo.horasExtraDiurnaOrd,
