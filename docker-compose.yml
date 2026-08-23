@@ -29,8 +29,23 @@ services:
         condition: service_healthy
     env_file:
       - .env
+    # Sin "ports": solo es alcanzable desde "nginx" dentro de la red interna
+    # de este compose. El HTTPS publico lo termina nginx (ver mas abajo).
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: horas-extras-nginx
+    restart: unless-stopped
+    depends_on:
+      - app
+    environment:
+      - APP_UPSTREAM=app:${PORT:-8090}
+    volumes:
+      - ./deploy/docker/nginx/default.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ./certs:/etc/nginx/certs:ro
     ports:
-      - "8090:8090"
+      - "${NGINX_HTTPS_PORT:-8443}:443"
+      - "${NGINX_HTTP_PORT:-8081}:80"
 
 volumes:
   horas-extras-db-data:

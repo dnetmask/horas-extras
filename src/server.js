@@ -19,6 +19,9 @@ const reglasRecargoRoutes = require('./routes/reglasRecargo');
 
 const app = express();
 app.disable('x-powered-by');
+// Detras de nginx (ver docker-compose.yml) - necesario para que Express vea
+// la IP real del cliente y el esquema https original en X-Forwarded-*.
+app.set('trust proxy', 1);
 app.use(express.json());
 
 const sessionPool = new Pool({ connectionString: config.databaseUrl });
