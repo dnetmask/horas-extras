@@ -11,6 +11,24 @@ const prisma = new PrismaClient();
 // admin) en vez de editar este seed.
 const REGLAS_RECARGO = [
   {
+    vigenteDesde: '2000-01-01', // piso historico, cubre cualquier fecha anterior a la reforma
+    horaInicioDiurna: '06:00',
+    horaFinDiurna: '21:00',
+    pctExtraDiurna: 0.25,
+    pctExtraNocturna: 0.75,
+    pctDominicalFestivo: 0.75,
+    nota: 'Regimen previo a la Ley 2466/2025 (Ley 789/2002): recargo dominical/festivo 75%, jornada nocturna 21:00-06:00.',
+  },
+  {
+    vigenteDesde: '2025-07-01', // Ley 2466/2025: sube el recargo dominical/festivo (la jornada nocturna todavia no cambiaba)
+    horaInicioDiurna: '06:00',
+    horaFinDiurna: '21:00',
+    pctExtraDiurna: 0.25,
+    pctExtraNocturna: 0.75,
+    pctDominicalFestivo: 0.8,
+    nota: 'Ley 2466/2025: recargo dominical/festivo sube a 80%. La jornada nocturna todavia es 21:00-06:00 (cambia el 2025-12-25).',
+  },
+  {
     vigenteDesde: '2025-12-25', // entrada en vigor de la jornada nocturna 19:00-06:00 (Ley 2466/2025)
     horaInicioDiurna: '06:00',
     horaFinDiurna: '19:00',
@@ -54,7 +72,11 @@ async function seedReglasRecargo() {
 
 async function seedFestivos() {
   const anoActual = new Date().getUTCFullYear();
-  for (const ano of [anoActual, anoActual + 1, anoActual + 2]) {
+  // 2024 en adelante: cubre con margen cualquier registro historico migrado
+  // (el mas antiguo conocido es de marzo 2025), ademas de actual+2 a futuro.
+  const anos = [];
+  for (let a = 2024; a <= anoActual + 2; a++) anos.push(a);
+  for (const ano of anos) {
     for (const f of festivosDelAno(ano)) {
       await prisma.festivo.upsert({
         where: { fecha: new Date(`${f.fecha}T00:00:00Z`) },

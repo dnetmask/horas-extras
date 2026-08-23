@@ -59,10 +59,12 @@ router.post('/', requireAuth, async (req, res, next) => {
       return res.status(400).json({ error: 'horaFin debe ser posterior a horaInicio (el permiso no puede cruzar medianoche)' });
     }
 
+    // No se bloquea si pide mas de lo disponible: un ingeniero puede quedar
+    // con saldo en contra (negativo) - se paga solo con las proximas horas
+    // extra que se le aprueben, ya que el saldo siempre es
+    // "aprobadas - compensadas" (ver src/lib/saldoHoras.js).
     const { saldo } = await calcularSaldo(ingenieroId);
-    if (horas > saldo) {
-      return res.status(409).json({ error: `Saldo insuficiente (saldo actual: ${saldo}h, solicitadas: ${horas}h)` });
-    }
+    const saldoResultante = saldo - horas;
 
     const compensacion = await prisma.$transaction(async (tx) => {
       const creada = await tx.compensacion.create({
@@ -86,7 +88,11 @@ router.post('/', requireAuth, async (req, res, next) => {
       return creada;
     });
 
-    res.status(201).json(compensacion);
+    res.status(201).json({
+      ...compensacion,
+      saldoResultante,
+      aviso: saldoResultante < 0 ? `Quedas con saldo en contra: ${saldoResultante}h. Se descuenta de las proximas horas extra que te aprueben.` : undefined,
+    });
   } catch (err) {
     next(err);
   }

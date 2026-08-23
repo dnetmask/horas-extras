@@ -6,7 +6,8 @@ async function renderBanco(contenedor) {
     <div class="card">
       <h2>Mi banco de horas compensatorias</h2>
       <p>Horas aprobadas: <strong>${banco.totalAprobado}h</strong> · Compensadas: <strong>${banco.totalCompensado}h</strong></p>
-      <p style="font-size:1.2rem">Saldo pendiente por compensar: <strong>${banco.saldo}h</strong></p>
+      <p style="font-size:1.2rem">Saldo disponible: <strong style="${banco.saldo < 0 ? 'color:#c0362c' : ''}">${banco.saldo}h</strong>${banco.saldo < 0 ? ' (saldo en contra)' : ''}</p>
+      ${banco.saldo < 0 ? '<p class="aviso">Tienes un saldo en contra - se descuenta solo con las próximas horas extra que te aprueben.</p>' : ''}
       ${banco.saldo > 0 ? '<p class="aviso">Si este saldo lleva más de 45 días sin compensar, llegará una alerta automática por correo a ti, tu líder y gerencia.</p>' : ''}
     </div>
 
@@ -42,7 +43,8 @@ async function renderBanco(contenedor) {
     const errorBox = document.getElementById('errorFormCompensacion');
     errorBox.textContent = '';
     try {
-      await api.registrarCompensacion(datos);
+      const creada = await api.registrarCompensacion(datos);
+      if (creada.aviso) alert(creada.aviso);
       renderBanco(contenedor);
     } catch (err) {
       errorBox.textContent = err.message;

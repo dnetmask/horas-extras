@@ -17,7 +17,7 @@ async function renderEquipo(contenedor) {
               <td>${s.rol}</td>
               <td>${s.totalAprobado}h</td>
               <td>${s.totalCompensado}h</td>
-              <td><strong>${s.saldo}h</strong>${s.saldo > 0 ? '' : ''}</td>
+              <td><strong style="${s.saldo < 0 ? 'color:#c0362c' : ''}">${s.saldo}h</strong>${s.saldo < 0 ? ' <span class="badge badge-rechazada">en contra</span>' : ''}</td>
             </tr>`
             )
             .join('')}
