@@ -32,10 +32,15 @@ async function calcular(body) {
   });
 }
 
+// Puede quedar como "lider" de una solicitud cualquiera con rol lider,
+// gerencia o admin - Gerencia a veces tambien cumple ese papel para
+// ingenieros que le reportan directo a ella.
+const ROLES_PUEDEN_SER_LIDER = ['lider', 'gerencia', 'admin'];
+
 async function buscarLiderValido(liderId) {
   if (!liderId) return null;
   const lider = await prisma.usuario.findUnique({ where: { id: liderId } });
-  if (!lider || lider.rol !== 'lider' || !lider.activo) return null;
+  if (!lider || !ROLES_PUEDEN_SER_LIDER.includes(lider.rol) || !lider.activo) return null;
   return lider;
 }
 

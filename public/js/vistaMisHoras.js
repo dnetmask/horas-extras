@@ -17,7 +17,9 @@ function filaFechaHora(r) {
 async function renderMisHoras(contenedor) {
   contenedor.innerHTML = '<p>Cargando...</p>';
   const [registros, usuarios] = await Promise.all([api.misHoras(), api.usuarios()]);
-  const lideres = usuarios.filter((u) => u.rol === 'lider' && u.activo);
+  // Gerencia (y admin) tambien pueden aparecer como "lider" elegible - en
+  // ocasiones el Gerente cumple ese papel para quienes le reportan directo.
+  const lideres = usuarios.filter((u) => ['lider', 'gerencia', 'admin'].includes(u.rol) && u.activo);
 
   contenedor.innerHTML = `
     <div class="card">
@@ -30,14 +32,14 @@ async function renderMisHoras(contenedor) {
           <label>Líder (pre-aprobación)
             <select name="liderId" required>
               <option value="" disabled selected>Selecciona un líder</option>
-              ${lideres.map((l) => `<option value="${l.id}">${l.nombre}</option>`).join('')}
+              ${lideres.map((l) => `<option value="${l.id}">${l.nombre}${l.rol !== 'lider' ? ` (${l.rol})` : ''}</option>`).join('')}
             </select>
           </label>
           <label># Caso <input type="text" name="caso" /></label>
           <label># OT <input type="text" name="ot" /></label>
           <label>Obra / proyecto <input type="text" name="obra" /></label>
         </div>
-        ${lideres.length === 0 ? '<p class="aviso">Todavía no hay ningún usuario con rol "Líder" configurado - pide a un admin que cree uno antes de poder enviar tu solicitud.</p>' : ''}
+        ${lideres.length === 0 ? '<p class="aviso">Todavía no hay ningún líder disponible (rol Líder, Gerencia o Admin) - pide a un admin que configure uno antes de poder enviar tu solicitud.</p>' : ''}
         <button class="btn btn-primary" type="submit" ${lideres.length === 0 ? 'disabled' : ''}>Enviar para pre-aprobación</button>
         <div class="error" id="errorFormHoras"></div>
       </form>

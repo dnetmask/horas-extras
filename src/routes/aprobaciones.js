@@ -15,10 +15,13 @@ router.get('/pendientes', requireAuth, requireRole('lider', 'gerencia', 'admin')
     let where;
     if (rol === 'admin') {
       where = { estado: { in: ['pendiente_lider', 'pendiente_gerencia'] } };
-    } else if (rol === 'lider') {
-      where = { estado: 'pendiente_lider', liderId: id };
+    } else if (rol === 'gerencia') {
+      // Ve todo lo pendiente de gerencia (broadcast del rol), mas lo pendiente
+      // de lider donde a ella misma la eligieron como lider - Gerencia a
+      // veces tambien cumple ese papel.
+      where = { OR: [{ estado: 'pendiente_gerencia' }, { estado: 'pendiente_lider', liderId: id }] };
     } else {
-      where = { estado: 'pendiente_gerencia' };
+      where = { estado: 'pendiente_lider', liderId: id };
     }
     const registros = await prisma.horasExtra.findMany({
       where,
@@ -50,7 +53,10 @@ router.post('/:id/decidir', requireAuth, requireRole('lider', 'gerencia', 'admin
     const { id: uid, rol, nombre } = req.session.usuario;
 
     if (registro.estado === 'pendiente_lider') {
-      if (rol === 'lider' && registro.liderId !== uid) {
+      // Sin importar si su rol de base es lider o gerencia: en esta etapa
+      // solo puede decidir quien fue elegido como lider de ESTA solicitud
+      // (o un admin).
+      if (rol !== 'admin' && registro.liderId !== uid) {
         return res.status(403).json({ error: 'No eres el lider elegido para esta solicitud' });
       }
     } else if (registro.estado === 'pendiente_gerencia') {
