@@ -2,12 +2,13 @@
 
 const express = require('express');
 const prisma = require('../db');
-const { requireAuth } = require('../auth/middleware');
+const { requireAuth, requireRole } = require('../auth/middleware');
 const { calcularHorasExtra } = require('../lib/recargos');
 const { construirContextoDeCalculo } = require('../lib/reglas');
 const { registrarAuditoria } = require('../lib/auditLog');
 const { enviarCorreo } = require('../lib/mail');
 const { solicitudAprobacion } = require('../lib/plantillasCorreo');
+const { calcularSaldo } = require('../lib/saldoHoras');
 
 const router = express.Router();
 
@@ -54,6 +55,38 @@ router.get('/mios', requireAuth, async (req, res, next) => {
       orderBy: { fecha: 'desc' },
     });
     res.json(registros);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Detalle granular de un usuario puntual (todas sus horas extra +
+// compensaciones + saldo) - solo para administradores, para poder revisar a
+// cualquier ingeniero sin depender de que esa persona comparta pantalla.
+router.get('/de/:usuarioId', requireAuth, requireRole('admin'), async (req, res, next) => {
+  try {
+    const usuario = await prisma.usuario.findUnique({ where: { id: req.params.usuarioId } });
+    if (!usuario) return res.status(404).json({ error: 'No existe' });
+
+    const [registros, compensaciones, saldo] = await Promise.all([
+      prisma.horasExtra.findMany({
+        where: { ingenieroId: usuario.id },
+        include: { lider: { select: { nombre: true } } },
+        orderBy: { fecha: 'desc' },
+      }),
+      prisma.compensacion.findMany({
+        where: { ingenieroId: usuario.id },
+        orderBy: { fechaCompensacion: 'desc' },
+      }),
+      calcularSaldo(usuario.id),
+    ]);
+
+    res.json({
+      usuario: { id: usuario.id, nombre: usuario.nombre, email: usuario.email, rol: usuario.rol },
+      registros,
+      compensaciones,
+      ...saldo,
+    });
   } catch (err) {
     next(err);
   }

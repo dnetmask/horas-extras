@@ -30,6 +30,7 @@ const api = {
   misHoras: () => apiFetch('/api/horas-extra/mios'),
   crearHoras: (datos) => apiFetch('/api/horas-extra', { method: 'POST', body: JSON.stringify(datos) }),
   editarHoras: (id, datos) => apiFetch(`/api/horas-extra/${id}`, { method: 'PATCH', body: JSON.stringify(datos) }),
+  horasDeUsuario: (usuarioId) => apiFetch(`/api/horas-extra/de/${usuarioId}`),
 
   pendientesAprobacion: () => apiFetch('/api/aprobaciones/pendientes'),
   decidir: (id, decision, motivo) =>
@@ -44,4 +45,5 @@ const api = {
   editarUsuario: (id, datos) => apiFetch(`/api/usuarios/${id}`, { method: 'PATCH', body: JSON.stringify(datos) }),
 
   reglasRecargo: () => apiFetch('/api/reglas-recargo'),
+  agregarReglaRecargo: (datos) => apiFetch('/api/reglas-recargo', { method: 'POST', body: JSON.stringify(datos) }),
 };

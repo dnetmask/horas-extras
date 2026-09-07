@@ -59,7 +59,7 @@ Completar en `.env`:
   App Registration** en el tenant de Netmask (ver más abajo). Requerido para
   el login SSO y para el envío de correo vía Graph.
 - `GRAPH_MAIL_FROM`: el buzón de M365 desde el que se enviarán las
-  notificaciones (ej. `notificaciones@netmask.co`).
+  notificaciones (ej. `notificacion@netmask.co`).
 - `ADMIN_EMAIL_INICIAL` (opcional): el primer email que queda precargado como
   admin. Si se deja vacío, la primera persona que inicie sesión por SSO se
   vuelve admin automáticamente.
@@ -97,18 +97,18 @@ con el Client ID del paso 4 y el buzón real):
 Connect-ExchangeOnline
 New-ApplicationAccessPolicy `
   -AppId "<AZURE_CLIENT_ID>" `
-  -PolicyScopeGroupId "notificaciones@netmask.co" `
+  -PolicyScopeGroupId "notificacion@netmask.co" `
   -AccessRight RestrictAccess `
-  -Description "Horas Extra - solo puede enviar como notificaciones@netmask.co"
+  -Description "Horas Extra - solo puede enviar como notificacion@netmask.co"
 # Verificar que quedo bien:
-Test-ApplicationAccessPolicy -AppId "<AZURE_CLIENT_ID>" -Identity "notificaciones@netmask.co"   # debe decir "Granted"
+Test-ApplicationAccessPolicy -AppId "<AZURE_CLIENT_ID>" -Identity "notificacion@netmask.co"   # debe decir "Granted"
 Test-ApplicationAccessPolicy -AppId "<AZURE_CLIENT_ID>" -Identity "cualquier-otro@netmask.co"    # debe decir "Denied"
 ```
 
 Sin este paso el permiso sigue siendo válido (la app funciona igual), solo
 queda más amplio de lo necesario.
 
-**Si el buzón `notificaciones@netmask.co` ya lo comparten otras apps**: no
+**Si el buzón `notificacion@netmask.co` ya lo comparten otras apps**: no
 hay conflicto. Cada app tiene su propio Client ID y su propia política — la
 de arriba solo declara "esta app puede enviar como este buzón", sin afectar
 las políticas que ya tengan las demás apps sobre el mismo buzón.

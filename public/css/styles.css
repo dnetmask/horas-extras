@@ -26,6 +26,16 @@ body {
   align-items: center;
 }
 .topbar h1 { font-size: 1.1rem; margin: 0; }
+.topbar-brand { display: flex; align-items: center; gap: 0.75rem; }
+.logo-chip {
+  display: inline-flex;
+  align-items: center;
+  background: white;
+  border-radius: 6px;
+  padding: 0.2rem 0.5rem;
+  line-height: 0;
+}
+.logo-chip img { height: 22px; display: block; }
 .usuario-actual { font-size: 0.9rem; opacity: 0.9; }
 .usuario-actual button { margin-left: 0.75rem; }
 
@@ -57,6 +67,7 @@ body {
 }
 
 .login-card { max-width: 420px; margin: 3rem auto; text-align: center; }
+.login-logo { max-width: 240px; width: 100%; height: auto; margin-bottom: 1.25rem; }
 
 .btn {
   display: inline-block;

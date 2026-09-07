@@ -5,6 +5,7 @@ const VISTAS = {
   aprobaciones: { titulo: 'Aprobaciones', render: renderAprobaciones, roles: ['lider', 'gerencia', 'admin'] },
   banco: { titulo: 'Mi banco de horas', render: renderBanco, roles: ['ingeniero', 'lider', 'gerencia', 'admin'] },
   equipo: { titulo: 'Horas del equipo', render: renderEquipo, roles: ['gerencia', 'admin'] },
+  recargos: { titulo: 'Cómo se calculan las horas', render: renderRecargos, roles: ['ingeniero', 'lider', 'gerencia', 'admin'] },
   admin: { titulo: 'Administración', render: renderAdmin, roles: ['admin'] },
 };
 
@@ -58,9 +59,24 @@ async function enrutar() {
   if (!usuarioSesion) return; // el login ya se renderizo en init()
 
   const clave = (location.hash.slice(2) || 'mis-horas').split('?')[0];
-  const vista = VISTAS[clave];
   renderNav();
 
+  // Ruta dinamica de solo-admin: #/usuario/<id> (detalle granular de una persona).
+  const matchUsuario = clave.match(/^usuario\/(.+)$/);
+  if (matchUsuario) {
+    if (usuarioSesion.rol !== 'admin') {
+      app.innerHTML = '<div class="card"><p>No tienes acceso a esta sección.</p></div>';
+      return;
+    }
+    try {
+      await renderDetalleUsuario(app, matchUsuario[1]);
+    } catch (err) {
+      app.innerHTML = `<div class="card"><p class="error">${err.message}</p></div>`;
+    }
+    return;
+  }
+
+  const vista = VISTAS[clave];
   if (!vista || !vista.roles.includes(usuarioSesion.rol)) {
     app.innerHTML = '<div class="card"><p>No tienes acceso a esta sección.</p></div>';
     return;

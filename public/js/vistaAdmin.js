@@ -1,6 +1,6 @@
 async function renderAdmin(contenedor) {
   contenedor.innerHTML = '<p>Cargando...</p>';
-  const [usuarios, reglas] = await Promise.all([api.usuarios(), api.reglasRecargo()]);
+  const usuarios = await api.usuarios();
 
   const opcionesLider = usuarios
     .filter((u) => ['lider', 'admin'].includes(u.rol))
@@ -32,7 +32,7 @@ async function renderAdmin(contenedor) {
     <div class="card">
       <h2>Usuarios</h2>
       <table>
-        <thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Líder asignado</th><th>Activo</th></tr></thead>
+        <thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th>Líder asignado</th><th>Activo</th><th></th></tr></thead>
         <tbody>
           ${usuarios
             .map(
@@ -57,34 +57,12 @@ async function renderAdmin(contenedor) {
                 </select>
               </td>
               <td><input type="checkbox" ${u.activo ? 'checked' : ''} onchange="actualizarUsuario('${u.id}', 'activo', this.checked)" /></td>
+              <td><a href="#/usuario/${u.id}">Ver detalle</a></td>
             </tr>`
             )
             .join('')}
         </tbody>
       </table>
-    </div>
-
-    <div class="card">
-      <h2>Reglas de recargo vigentes (ley colombiana)</h2>
-      <table>
-        <thead><tr><th>Vigente desde</th><th>Diurna</th><th>% Extra diurna</th><th>% Extra nocturna</th><th>% Dominical/Festivo</th><th>Nota</th></tr></thead>
-        <tbody>
-          ${reglas
-            .map(
-              (r) => `
-            <tr>
-              <td>${r.vigenteDesde.slice(0, 10)}</td>
-              <td>${r.horaInicioDiurna}-${r.horaFinDiurna}</td>
-              <td>${(r.pctExtraDiurna * 100).toFixed(0)}%</td>
-              <td>${(r.pctExtraNocturna * 100).toFixed(0)}%</td>
-              <td>${(r.pctDominicalFestivo * 100).toFixed(0)}%</td>
-              <td style="font-size:0.82rem;color:#556">${r.nota || ''}</td>
-            </tr>`
-            )
-            .join('')}
-        </tbody>
-      </table>
-      <p style="font-size:0.82rem;color:#556">Para agregar una nueva vigencia (ej. un futuro cambio de ley) usar <code>POST /api/reglas-recargo</code>.</p>
     </div>
   `;
 
