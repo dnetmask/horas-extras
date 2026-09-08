@@ -7,7 +7,7 @@ async function renderDetalleUsuario(contenedor, usuarioId) {
     contenedor.innerHTML = `<div class="card"><p class="error">${err.message}</p></div>`;
     return;
   }
-  const { usuario, registros, compensaciones, totalAprobado, totalCompensado, saldo } = datos;
+  const { usuario, registros, compensaciones, totalHorasTrabajadas, totalAprobado, totalCompensado, saldo } = datos;
 
   contenedor.innerHTML = `
     <p><a href="#/equipo">← Horas del equipo</a></p>
@@ -15,7 +15,7 @@ async function renderDetalleUsuario(contenedor, usuarioId) {
     <div class="card">
       <h2>${usuario.nombre}</h2>
       <p style="font-size:0.85rem;color:#556">${usuario.email} · rol ${usuario.rol}</p>
-      <p>Horas aprobadas: <strong>${totalAprobado}h</strong> · Compensadas: <strong>${totalCompensado}h</strong></p>
+      <p>Horas trabajadas: <strong>${totalHorasTrabajadas}h</strong> · Compensables acreditadas: <strong>${totalAprobado}h</strong> · Ya tomadas: <strong>${totalCompensado}h</strong></p>
       <p style="font-size:1.15rem">Saldo disponible: <strong style="${saldo < 0 ? 'color:#c0362c' : ''}">${saldo}h</strong>${saldo < 0 ? ' <span class="badge badge-rechazada">en contra</span>' : ''}</p>
     </div>
 
@@ -26,7 +26,7 @@ async function renderDetalleUsuario(contenedor, usuarioId) {
           ? '<p>Sin registros todavía.</p>'
           : `<table>
               <thead>
-                <tr><th>Fecha/hora</th><th>Total</th><th>Diurna</th><th>Nocturna</th><th>Dom/Fest diurna</th><th>Dom/Fest nocturna</th><th>Líder</th><th>Caso</th><th>OT</th><th>Obra</th><th>Estado</th></tr>
+                <tr><th>Fecha/hora</th><th>Trabajado</th><th>Diurna</th><th>Nocturna</th><th>Dom/Fest diurna</th><th>Dom/Fest nocturna</th><th>Compensable</th><th>Líder</th><th>Caso</th><th>OT</th><th>Obra</th><th>Estado</th></tr>
               </thead>
               <tbody>
                 ${registros
@@ -39,6 +39,7 @@ async function renderDetalleUsuario(contenedor, usuarioId) {
                     <td>${r.horasExtraNocturnaOrd}h</td>
                     <td>${r.horasExtraDiurnaDomFest}h</td>
                     <td>${r.horasExtraNocturnaDomFest}h</td>
+                    <td><strong>${r.horasCompensables}h</strong></td>
                     <td>${r.lider ? r.lider.nombre : ''}</td>
                     <td>${r.caso || ''}</td>
                     <td>${r.ot || ''}</td>

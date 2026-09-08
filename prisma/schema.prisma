@@ -97,7 +97,14 @@ model HorasExtra {
   horasExtraNocturnaOrd     Decimal @default(0) @map("horas_extra_nocturna_ord") @db.Decimal(5, 2)
   horasExtraDiurnaDomFest   Decimal @default(0) @map("horas_extra_diurna_domfest") @db.Decimal(5, 2)
   horasExtraNocturnaDomFest Decimal @default(0) @map("horas_extra_nocturna_domfest") @db.Decimal(5, 2)
+  // Suma literal de las 4 anteriores - horas de reloj realmente trabajadas.
   horasTotales              Decimal @default(0) @map("horas_totales") @db.Decimal(5, 2)
+  // Horas que se acreditan al banco de tiempo compensatorio: cada categoria
+  // multiplicada por su factor de recargo (1 + % aplicable segun el
+  // RecargoRuleSet vigente en `fecha`). Netmask compensa con TIEMPO, no con
+  // dinero, por eso el recargo se traduce en mas horas de descanso, no en un
+  // valor monetario. Ver src/lib/recargos.js (horasCompensablesDe).
+  horasCompensables         Decimal @default(0) @map("horas_compensables") @db.Decimal(6, 2)
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

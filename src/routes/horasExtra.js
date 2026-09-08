@@ -3,7 +3,7 @@
 const express = require('express');
 const prisma = require('../db');
 const { requireAuth, requireRole } = require('../auth/middleware');
-const { calcularHorasExtra } = require('../lib/recargos');
+const { calcularHorasExtra, horasCompensablesDe } = require('../lib/recargos');
 const { construirContextoDeCalculo } = require('../lib/reglas');
 const { registrarAuditoria } = require('../lib/auditLog');
 const { enviarCorreo } = require('../lib/mail');
@@ -27,12 +27,20 @@ function validarEntrada(body) {
 
 async function calcular(body) {
   const ctx = await construirContextoDeCalculo();
-  return calcularHorasExtra({
+  const resultado = calcularHorasExtra({
     fecha: body.fecha,
     horaInicio: body.horaInicio,
     horaFin: body.horaFin,
     ...ctx,
   });
+  // Horas acreditadas al banco de tiempo compensatorio: cada categoria
+  // multiplicada por su factor de recargo (ver src/lib/recargos.js). Se usa
+  // la regla vigente en la fecha de inicio del turno - un turno que cruza
+  // justo la medianoche de un cambio de ley es un caso extremo que no se
+  // modela con precision, igual que ya pasaba con la clasificacion en horas.
+  const ruleSet = ctx.ruleSetParaFecha(body.fecha);
+  resultado.horasCompensables = horasCompensablesDe(resultado, ruleSet);
+  return resultado;
 }
 
 // Puede quedar como "lider" de una solicitud cualquiera con rol lider,
@@ -119,6 +127,7 @@ router.post('/', requireAuth, async (req, res, next) => {
           horasExtraDiurnaDomFest: calculo.horasExtraDiurnaDomFest,
           horasExtraNocturnaDomFest: calculo.horasExtraNocturnaDomFest,
           horasTotales: calculo.horasTotales,
+          horasCompensables: calculo.horasCompensables,
         },
       });
       await registrarAuditoria(tx, {
@@ -207,6 +216,7 @@ router.patch('/:id', requireAuth, async (req, res, next) => {
           horasExtraDiurnaDomFest: calculo.horasExtraDiurnaDomFest,
           horasExtraNocturnaDomFest: calculo.horasExtraNocturnaDomFest,
           horasTotales: calculo.horasTotales,
+          horasCompensables: calculo.horasCompensables,
         },
       });
       for (const campo of CAMPOS_EDITABLES) {

@@ -47,6 +47,7 @@ async function renderMisHoras(contenedor) {
 
     <div class="card">
       <h2>Mis registros</h2>
+      <p style="font-size:0.85rem;color:#556">"Compensable" ya incluye el recargo de cada categoría convertido en más tiempo (Netmask compensa con tiempo, no con dinero) — es lo que se acredita a tu banco de horas. Ver <a href="#/recargos">Cómo se calculan las horas</a>.</p>
       ${registros.length === 0 ? '<p>Todavía no tienes registros.</p>' : renderTablaMisHoras(registros)}
     </div>
   `;
@@ -69,7 +70,7 @@ function renderTablaMisHoras(registros) {
   return `
     <table>
       <thead>
-        <tr><th>Fecha/hora</th><th>Total</th><th>Diurna</th><th>Nocturna</th><th>Dom/Fest diurna</th><th>Dom/Fest nocturna</th><th>Líder</th><th>Estado</th></tr>
+        <tr><th>Fecha/hora</th><th>Trabajado</th><th>Diurna</th><th>Nocturna</th><th>Dom/Fest diurna</th><th>Dom/Fest nocturna</th><th>Compensable</th><th>Líder</th><th>Estado</th></tr>
       </thead>
       <tbody>
         ${registros
@@ -82,6 +83,7 @@ function renderTablaMisHoras(registros) {
             <td>${r.horasExtraNocturnaOrd}h</td>
             <td>${r.horasExtraDiurnaDomFest}h</td>
             <td>${r.horasExtraNocturnaDomFest}h</td>
+            <td><strong>${r.horasCompensables}h</strong></td>
             <td>${r.lider ? r.lider.nombre : ''}</td>
             <td>${badgeEstado(r.estado)}${r.motivoRechazo ? `<div style="font-size:0.8rem;color:#c0362c">${r.motivoRechazo}</div>` : ''}</td>
           </tr>`

@@ -12,6 +12,7 @@ async function renderRecargos(contenedor) {
         <div><strong>Diurna dominical/festiva</strong><div style="font-size:0.85rem;color:#556">Domingo o festivo, de día.</div></div>
         <div><strong>Nocturna dominical/festiva</strong><div style="font-size:0.85rem;color:#556">Domingo o festivo, de noche.</div></div>
       </div>
+      <p class="aviso" style="margin-top:1rem">Netmask compensa las horas extra con <strong>tiempo</strong>, no con dinero: el recargo de cada categoría se convierte en más horas acreditadas a tu banco de tiempo compensatorio (no en un valor en pesos). Por ejemplo, hoy 1 hora nocturna dominical/festiva acredita 1 × (1 + 75% + 80%) = <strong>2.55 horas compensables</strong>, no 1. Esa es la columna "Compensable" que ves en tus registros.</p>
     </div>
 
     <div class="card">

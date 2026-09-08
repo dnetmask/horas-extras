@@ -6,16 +6,20 @@ async function calcularSaldo(ingenieroId) {
   const [aprobadas, compensadas] = await Promise.all([
     prisma.horasExtra.aggregate({
       where: { ingenieroId, estado: 'aprobada' },
-      _sum: { horasTotales: true },
+      _sum: { horasTotales: true, horasCompensables: true },
     }),
     prisma.compensacion.aggregate({
       where: { ingenieroId },
       _sum: { horas: true },
     }),
   ]);
-  const totalAprobado = Number(aprobadas._sum.horasTotales || 0);
+  const totalHorasTrabajadas = Number(aprobadas._sum.horasTotales || 0);
+  // "totalAprobado" son las horas YA con el multiplicador de recargo
+  // aplicado (banco de tiempo compensatorio) - Netmask compensa con tiempo,
+  // no con dinero, asi que el recargo se traduce en mas horas de descanso.
+  const totalAprobado = Number(aprobadas._sum.horasCompensables || 0);
   const totalCompensado = Number(compensadas._sum.horas || 0);
-  return { totalAprobado, totalCompensado, saldo: totalAprobado - totalCompensado };
+  return { totalHorasTrabajadas, totalAprobado, totalCompensado, saldo: totalAprobado - totalCompensado };
 }
 
 /**
@@ -33,7 +37,7 @@ async function calcularSaldosDeTodos() {
     prisma.horasExtra.groupBy({
       by: ['ingenieroId'],
       where: { estado: 'aprobada' },
-      _sum: { horasTotales: true },
+      _sum: { horasTotales: true, horasCompensables: true },
     }),
     prisma.compensacion.groupBy({
       by: ['ingenieroId'],
@@ -41,13 +45,15 @@ async function calcularSaldosDeTodos() {
     }),
   ]);
 
-  const aprobadoPorId = new Map(aprobadasPorUsuario.map((r) => [r.ingenieroId, Number(r._sum.horasTotales || 0)]));
+  const trabajadasPorId = new Map(aprobadasPorUsuario.map((r) => [r.ingenieroId, Number(r._sum.horasTotales || 0)]));
+  const aprobadoPorId = new Map(aprobadasPorUsuario.map((r) => [r.ingenieroId, Number(r._sum.horasCompensables || 0)]));
   const compensadoPorId = new Map(compensadasPorUsuario.map((r) => [r.ingenieroId, Number(r._sum.horas || 0)]));
 
   return usuarios.map((u) => {
+    const totalHorasTrabajadas = trabajadasPorId.get(u.id) || 0;
     const totalAprobado = aprobadoPorId.get(u.id) || 0;
     const totalCompensado = compensadoPorId.get(u.id) || 0;
-    return { ...u, totalAprobado, totalCompensado, saldo: totalAprobado - totalCompensado };
+    return { ...u, totalHorasTrabajadas, totalAprobado, totalCompensado, saldo: totalAprobado - totalCompensado };
   });
 }
 

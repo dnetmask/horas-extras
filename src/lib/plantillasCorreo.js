@@ -5,8 +5,9 @@ const config = require('../config');
 function filaResumen(h) {
   return `
     <li>${h.fecha.toISOString().slice(0, 10)} · ${h.horaInicio}-${h.horaFin} ·
-      total ${h.horasTotales}h (diurna ${h.horasExtraDiurnaOrd}h, nocturna ${h.horasExtraNocturnaOrd}h,
+      trabajado ${h.horasTotales}h (diurna ${h.horasExtraDiurnaOrd}h, nocturna ${h.horasExtraNocturnaOrd}h,
       dominical/festiva diurna ${h.horasExtraDiurnaDomFest}h, nocturna ${h.horasExtraNocturnaDomFest}h)
+      · <strong>${h.horasCompensables}h compensables</strong>
       ${h.obra ? ' · ' + h.obra : ''}
     </li>`;
 }

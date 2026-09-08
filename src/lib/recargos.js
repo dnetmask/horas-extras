@@ -124,21 +124,47 @@ function calcularHorasExtra({ fecha, horaInicio, horaFin, ruleSetParaFecha, esDo
 }
 
 /**
- * Dado un valor-hora ordinario, calcula el valor pagable/compensable de un
- * resultado de `calcularHorasExtra` según los % de recargo vigentes.
+ * Factores (1 + % de recargo) de cada categoria, segun un RecargoRuleSet.
+ */
+function factoresDe(ruleSet) {
+  return {
+    diurnaOrd: 1 + Number(ruleSet.pctExtraDiurna),
+    nocturnaOrd: 1 + Number(ruleSet.pctExtraNocturna),
+    diurnaDomFest: 1 + Number(ruleSet.pctExtraDiurna) + Number(ruleSet.pctDominicalFestivo),
+    nocturnaDomFest: 1 + Number(ruleSet.pctExtraNocturna) + Number(ruleSet.pctDominicalFestivo),
+  };
+}
+
+/**
+ * Dado un valor-hora ordinario, calcula el valor pagable de un resultado de
+ * `calcularHorasExtra` según los % de recargo vigentes. (No se usa hoy en
+ * Netmask, que compensa con tiempo en vez de dinero - ver
+ * `horasCompensablesDe` - pero se deja disponible por si se necesita a futuro.)
  */
 function valorHorasExtra(resultado, ruleSet, valorHoraOrdinaria) {
-  const factorDiurnaOrd = 1 + Number(ruleSet.pctExtraDiurna);
-  const factorNocturnaOrd = 1 + Number(ruleSet.pctExtraNocturna);
-  const factorDiurnaDomFest = 1 + Number(ruleSet.pctExtraDiurna) + Number(ruleSet.pctDominicalFestivo);
-  const factorNocturnaDomFest = 1 + Number(ruleSet.pctExtraNocturna) + Number(ruleSet.pctDominicalFestivo);
-
+  const f = factoresDe(ruleSet);
   return (
-    resultado.horasExtraDiurnaOrd * factorDiurnaOrd * valorHoraOrdinaria +
-    resultado.horasExtraNocturnaOrd * factorNocturnaOrd * valorHoraOrdinaria +
-    resultado.horasExtraDiurnaDomFest * factorDiurnaDomFest * valorHoraOrdinaria +
-    resultado.horasExtraNocturnaDomFest * factorNocturnaDomFest * valorHoraOrdinaria
+    resultado.horasExtraDiurnaOrd * f.diurnaOrd * valorHoraOrdinaria +
+    resultado.horasExtraNocturnaOrd * f.nocturnaOrd * valorHoraOrdinaria +
+    resultado.horasExtraDiurnaDomFest * f.diurnaDomFest * valorHoraOrdinaria +
+    resultado.horasExtraNocturnaDomFest * f.nocturnaDomFest * valorHoraOrdinaria
   );
+}
+
+/**
+ * Netmask compensa las horas extra con TIEMPO, no con dinero: el recargo de
+ * cada categoria se traduce en mas horas acreditadas al banco de tiempo
+ * compensatorio, no en un valor monetario. Ej.: 3h nocturna dominical/festiva
+ * con recargo nocturno 75% + dominical 80% -> 3h * 2.55 = 7.65h compensables.
+ */
+function horasCompensablesDe(resultado, ruleSet) {
+  const f = factoresDe(ruleSet);
+  const compensables =
+    resultado.horasExtraDiurnaOrd * f.diurnaOrd +
+    resultado.horasExtraNocturnaOrd * f.nocturnaOrd +
+    resultado.horasExtraDiurnaDomFest * f.diurnaDomFest +
+    resultado.horasExtraNocturnaDomFest * f.nocturnaDomFest;
+  return Math.round(compensables * 100) / 100;
 }
 
 /**
@@ -154,4 +180,4 @@ function ruleSetVigente(ruleSets, fechaISO) {
   return elegido;
 }
 
-module.exports = { calcularHorasExtra, valorHorasExtra, ruleSetVigente };
+module.exports = { calcularHorasExtra, valorHorasExtra, horasCompensablesDe, ruleSetVigente };
