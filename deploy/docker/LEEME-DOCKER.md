@@ -159,7 +159,15 @@ desde afuera — `app` y `db` nunca se exponen.
 - El job de alerta de 45 días corre dentro del mismo contenedor `app`
   (`node-cron`, todos los días 07:00 hora del contenedor) — no hace falta un
   servicio aparte.
-- Backups: `docker exec horas-extras-db pg_dump -U $POSTGRES_USER $POSTGRES_DB > backup.sql`.
+- **Backups**: automáticos desde que se agregó el servicio `db-backup`
+  (mismo esquema que ya usan para Supabase en este servidor) — respaldo
+  diario comprimido en `./backups/`, con retención de 14 días / 8 semanas /
+  6 meses. Verificar que esté corriendo: `docker compose ps db-backup` y
+  `ls -la backups/daily`. Restaurar uno:
+  `gunzip -c backups/daily/<archivo>.sql.gz | docker exec -i horas-extras-db psql -U $POSTGRES_USER -d $POSTGRES_DB`.
+  Recomendado copiar `./backups/` a algo fuera de este servidor
+  periódicamente (un backup que vive en el mismo disco que lo que respalda
+  no protege contra una falla del disco completo).
 - Renovar el certificado: volver a correr
   `./scripts/generar-certificado-autofirmado.sh <ip-publica>` y
   `docker compose restart nginx`.

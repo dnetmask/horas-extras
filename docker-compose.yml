@@ -17,6 +17,28 @@ services:
     # Sin "ports": la base de datos solo es alcanzable dentro de la red
     # interna de este compose, nunca desde fuera del host.
 
+  db-backup:
+    image: prodrigestivill/postgres-backup-local
+    container_name: horas-extras-db-backup${STACK_SUFFIX:-}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backups:/backups
+    environment:
+      - POSTGRES_HOST=db
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - SCHEDULE=@daily
+      - BACKUP_KEEP_DAYS=14
+      - BACKUP_KEEP_WEEKS=8
+      - BACKUP_KEEP_MONTHS=6
+    # Respaldo diario comprimido a ./backups (fuera del volumen de "db", para
+    # que un problema con el volumen no se lleve tambien el backup). Mismo
+    # esquema que ya usan para el backup de Supabase en este servidor.
+
   app:
     build:
       context: .
