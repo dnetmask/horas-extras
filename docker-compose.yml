@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:16-alpine
-    container_name: horas-extras-db
+    container_name: horas-extras-db${STACK_SUFFIX:-}
     restart: unless-stopped
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
@@ -21,8 +21,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: horas-extras-app:latest
-    container_name: horas-extras-app
+    image: horas-extras-app${STACK_SUFFIX:-}:latest
+    container_name: horas-extras-app${STACK_SUFFIX:-}
     restart: unless-stopped
     depends_on:
       db:
@@ -34,7 +34,7 @@ services:
 
   nginx:
     image: nginx:1.27-alpine
-    container_name: horas-extras-nginx
+    container_name: horas-extras-nginx${STACK_SUFFIX:-}
     restart: unless-stopped
     depends_on:
       - app
@@ -49,3 +49,4 @@ services:
 
 volumes:
   horas-extras-db-data:
+    name: horas-extras-db-data${STACK_SUFFIX:-}
