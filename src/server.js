@@ -8,6 +8,7 @@ const pgSession = require('connect-pg-simple')(session);
 
 const config = require('./config');
 const { programarJobDiario } = require('./jobs/alertaVencimiento');
+const { programarJobVencimientoCredenciales } = require('./jobs/alertaVencimientoCredenciales');
 
 const authRoutes = require('./routes/auth');
 const healthzRoutes = require('./routes/healthz');
@@ -63,4 +64,5 @@ app.listen(config.port, () => {
     console.warn('DEV_AUTH_BYPASS=true: /auth/dev-login esta habilitado. NO usar en produccion.');
   }
   programarJobDiario();
+  programarJobVencimientoCredenciales();
 });

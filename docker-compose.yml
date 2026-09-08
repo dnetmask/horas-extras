@@ -51,6 +51,10 @@ services:
         condition: service_healthy
     env_file:
       - .env
+    volumes:
+      # Solo lectura - para que el job diario pueda avisar cuando el
+      # certificado este por vencer (ver src/jobs/alertaVencimientoCredenciales.js).
+      - ./certs:/app/certs:ro
     # Sin "ports": solo es alcanzable desde "nginx" dentro de la red interna
     # de este compose. El HTTPS publico lo termina nginx (ver mas abajo).
 

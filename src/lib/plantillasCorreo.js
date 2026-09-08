@@ -53,4 +53,20 @@ function alertaVencimiento({ ingenieroNombre, registros }) {
   };
 }
 
-module.exports = { solicitudAprobacion, decisionNotificada, alertaVencimiento };
+function alertaVencimientoCredencial({ tipo, fechaVencimiento, diasRestantes }) {
+  const nombres = {
+    certificado: 'el certificado TLS autofirmado (nginx)',
+    secreto_azure: 'el Client Secret del App Registration de Azure',
+  };
+  return {
+    asunto: `[Horas extra] ${nombres[tipo] || tipo} vence en ${diasRestantes} día(s)`,
+    html: `
+      <p><strong>${nombres[tipo] || tipo}</strong> de la app Horas Extra vence el
+      <strong>${fechaVencimiento}</strong> (en ${diasRestantes} día(s)).</p>
+      <p>Sin renovarlo a tiempo, ${tipo === 'certificado' ? 'nadie va a poder entrar a la app (el navegador rechaza el sitio)' : 'se cae el login SSO y el envío de correo'}.</p>
+      <p>Ver <code>deploy/docker/LEEME-DOCKER.md</code> para los pasos de renovación.</p>
+    `,
+  };
+}
+
+module.exports = { solicitudAprobacion, decisionNotificada, alertaVencimiento, alertaVencimientoCredencial };

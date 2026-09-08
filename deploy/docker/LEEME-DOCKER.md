@@ -58,6 +58,10 @@ Completar en `.env`:
 - `AZURE_TENANT_ID` / `AZURE_CLIENT_ID` / `AZURE_CLIENT_SECRET`: de un **Azure
   App Registration** en el tenant de Netmask (ver más abajo). Requerido para
   el login SSO y para el envío de correo vía Graph.
+- `AZURE_CLIENT_SECRET_EXPIRES`: la fecha de vencimiento que se eligió al
+  crear el secreto de arriba (ej. `2027-09-08`). Sin esto, nadie recibe
+  aviso antes de que se venza y se caiga el login/correo de un día para
+  otro — ver la alerta automática más abajo.
 - `GRAPH_MAIL_FROM`: el buzón de M365 desde el que se enviarán las
   notificaciones (ej. `notificacion@netmask.co`).
 - `ADMIN_EMAIL_INICIAL` (opcional): el primer email que queda precargado como
@@ -159,6 +163,12 @@ desde afuera — `app` y `db` nunca se exponen.
 - El job de alerta de 45 días corre dentro del mismo contenedor `app`
   (`node-cron`, todos los días 07:00 hora del contenedor) — no hace falta un
   servicio aparte.
+- **Alerta de vencimiento del certificado y del Client Secret de Azure**:
+  otro job diario (07:15) revisa la fecha real de vencimiento del
+  certificado (leyendo `certs/fullchain.pem`, montado en el contenedor) y la
+  fecha anotada en `AZURE_CLIENT_SECRET_EXPIRES` — si falta 30, 14, 7, 3 o 1
+  día (o si ya venció), manda un correo a todos los usuarios con rol `admin`
+  (no a líderes/gerencia, que no pueden renovar ninguno de los dos).
 - **Backups**: automáticos desde que se agregó el servicio `db-backup`
   (mismo esquema que ya usan para Supabase en este servidor) — respaldo
   diario comprimido en `./backups/`, con retención de 14 días / 8 semanas /

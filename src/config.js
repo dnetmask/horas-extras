@@ -22,8 +22,14 @@ const config = {
     tenantId: process.env.AZURE_TENANT_ID,
     clientId: process.env.AZURE_CLIENT_ID,
     clientSecret: process.env.AZURE_CLIENT_SECRET,
+    // Fecha (YYYY-MM-DD) en que vence el Client Secret de arriba - Azure no
+    // expone esto por una API simple, así que se anota a mano al crearlo o
+    // rotarlo (ver deploy/docker/LEEME-DOCKER.md). Sin esto, no se puede
+    // avisar antes de que venza.
+    clientSecretExpira: process.env.AZURE_CLIENT_SECRET_EXPIRES,
   },
   graphMailFrom: process.env.GRAPH_MAIL_FROM,
+  certPath: process.env.CERT_PATH || '/app/certs/fullchain.pem',
 };
 
 module.exports = config;
