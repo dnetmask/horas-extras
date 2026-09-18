@@ -15,7 +15,7 @@ async function renderDetalleUsuario(contenedor, usuarioId) {
     <div class="card">
       <h2>${usuario.nombre}</h2>
       <p style="font-size:0.85rem;color:#556">${usuario.email} · rol ${usuario.rol}</p>
-      <p>Horas trabajadas: <strong>${totalHorasTrabajadas}h</strong> · Compensables acreditadas: <strong>${totalAprobado}h</strong> · Ya tomadas: <strong>${totalCompensado}h</strong></p>
+      <p>Horas trabajadas: <strong>${totalHorasTrabajadas}h</strong> · Compensables acreditadas (con recargo): <strong>${totalAprobado}h</strong> · Ya tomadas: <strong>${totalCompensado}h</strong></p>
       <p style="font-size:1.15rem">Saldo disponible: <strong style="${saldo < 0 ? 'color:#c0362c' : ''}">${saldo}h</strong>${saldo < 0 ? ' <span class="badge badge-rechazada">en contra</span>' : ''}</p>
     </div>
 

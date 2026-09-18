@@ -16,11 +16,15 @@ function linkRegistro(id) {
   return `${config.appBaseUrl}/#/registro/${id}`;
 }
 
+// paraQuien: 'líder' (primera etapa, pre-aprobación) o 'gerencia' (aprobación
+// final). Mismos términos que usa la interfaz, para que el correo y la
+// pantalla digan lo mismo.
 function solicitudAprobacion({ registro, ingenieroNombre, paraQuien }) {
+  const etapa = paraQuien === 'gerencia' ? 'aprobación final' : 'pre-aprobación';
   return {
-    asunto: `[Horas extra] ${ingenieroNombre} solicita tu VoBo (${paraQuien})`,
+    asunto: `[Horas extra] ${ingenieroNombre} solicita tu ${etapa}`,
     html: `
-      <p><strong>${ingenieroNombre}</strong> registró horas extra que requieren tu aprobación (${paraQuien}):</p>
+      <p><strong>${ingenieroNombre}</strong> registró horas extra que requieren tu <strong>${etapa}</strong>:</p>
       <ul>${filaResumen(registro)}</ul>
       <p><a href="${linkRegistro(registro.id)}">Ver y aprobar/rechazar</a></p>
     `,

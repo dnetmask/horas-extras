@@ -12,7 +12,7 @@ async function renderAprobaciones(contenedor) {
       <h2>Pendientes de aprobación</h2>
       <table>
         <thead>
-          <tr><th>Ingeniero</th><th>Líder</th><th>Fecha/hora</th><th>Trabajado</th><th>Compensable</th><th>Etapa</th><th>Obra</th><th></th></tr>
+          <tr><th>Ingeniero</th><th>Líder</th><th>Fecha/hora</th><th>Trabajado</th><th>Compensable</th><th>Estado</th><th>Obra</th><th></th></tr>
         </thead>
         <tbody id="tbodyAprobaciones">
           ${pendientes

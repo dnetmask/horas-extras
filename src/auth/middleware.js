@@ -2,7 +2,7 @@
 
 function requireAuth(req, res, next) {
   if (!req.session.usuario) {
-    return res.status(401).json({ error: 'No autenticado. Inicia sesion en /auth/login.' });
+    return res.status(401).json({ error: 'No autenticado. Inicia sesión en /auth/login.' });
   }
   next();
 }

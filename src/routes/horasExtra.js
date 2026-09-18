@@ -79,7 +79,7 @@ router.get('/de/:usuarioId', requireAuth, requireRole('lider', 'admin'), async (
 
     const { rol, id: uid } = req.session.usuario;
     if (rol === 'lider' && usuario.liderId !== uid) {
-      return res.status(403).json({ error: 'Esa persona no tiene tu usuario como lider asignado' });
+      return res.status(403).json({ error: 'Esa persona no tiene tu usuario como líder asignado' });
     }
 
     const [registros, compensaciones, saldo] = await Promise.all([
@@ -112,7 +112,7 @@ router.post('/', requireAuth, async (req, res, next) => {
     if (error) return res.status(400).json({ error });
 
     const lider = await buscarLiderValido(req.body.liderId);
-    if (!lider) return res.status(400).json({ error: 'Debes elegir un lider valido para la pre-aprobacion' });
+    if (!lider) return res.status(400).json({ error: 'Debes elegir un líder válido para la pre-aprobación' });
 
     const calculo = await calcular(req.body);
     const usuario = await prisma.usuario.findUnique({ where: { id: req.session.usuario.id } });
@@ -182,7 +182,7 @@ router.patch('/:id', requireAuth, async (req, res, next) => {
       return res.status(403).json({ error: 'Solo puedes editar tus propios registros' });
     }
     if (registro.estado !== 'pendiente_lider') {
-      return res.status(409).json({ error: 'Solo se puede editar mientras esta pendiente de aprobacion del lider' });
+      return res.status(409).json({ error: 'Solo se puede editar mientras está pendiente de pre-aprobación del líder' });
     }
 
     const datosNuevos = { ...req.body };
@@ -199,7 +199,7 @@ router.patch('/:id', requireAuth, async (req, res, next) => {
     let liderId = registro.liderId;
     if (datosNuevos.liderId && datosNuevos.liderId !== registro.liderId) {
       const lider = await buscarLiderValido(datosNuevos.liderId);
-      if (!lider) return res.status(400).json({ error: 'Lider invalido' });
+      if (!lider) return res.status(400).json({ error: 'Líder inválido' });
       liderId = lider.id;
     }
 
@@ -261,7 +261,7 @@ router.delete('/:id', requireAuth, async (req, res, next) => {
       return res.status(403).json({ error: 'Solo puedes eliminar tus propios registros' });
     }
     if (registro.estado !== 'pendiente_lider') {
-      return res.status(409).json({ error: 'Solo se puede eliminar mientras esta pendiente de aprobacion del lider' });
+      return res.status(409).json({ error: 'Solo se puede eliminar mientras está pendiente de pre-aprobación del líder' });
     }
 
     await prisma.$transaction(async (tx) => {

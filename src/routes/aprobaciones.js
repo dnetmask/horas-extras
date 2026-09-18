@@ -57,7 +57,7 @@ router.post('/:id/decidir', requireAuth, requireRole('lider', 'gerencia', 'admin
       // solo puede decidir quien fue elegido como lider de ESTA solicitud
       // (o un admin).
       if (rol !== 'admin' && registro.liderId !== uid) {
-        return res.status(403).json({ error: 'No eres el lider elegido para esta solicitud' });
+        return res.status(403).json({ error: 'No eres el líder elegido para esta solicitud' });
       }
     } else if (registro.estado === 'pendiente_gerencia') {
       if (!['gerencia', 'admin'].includes(rol)) {

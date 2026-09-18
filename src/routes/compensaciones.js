@@ -50,14 +50,14 @@ router.post('/', requireAuth, async (req, res, next) => {
     const ingenieroId = esGestor && ingenieroIdBody ? ingenieroIdBody : req.session.usuario.id;
 
     if (!/^\d{4}-\d{2}-\d{2}$/.test(fechaCompensacion || '')) {
-      return res.status(400).json({ error: 'fechaCompensacion invalida (YYYY-MM-DD)' });
+      return res.status(400).json({ error: 'La fecha del permiso es inválida (YYYY-MM-DD)' });
     }
     if (!/^\d{2}:\d{2}$/.test(horaInicio || '') || !/^\d{2}:\d{2}$/.test(horaFin || '')) {
-      return res.status(400).json({ error: 'horaInicio y horaFin son obligatorios (HH:MM)' });
+      return res.status(400).json({ error: 'La hora de inicio y la hora de fin del permiso son obligatorias (HH:MM)' });
     }
     const horas = horasEntreHorarios(horaInicio, horaFin);
     if (horas <= 0) {
-      return res.status(400).json({ error: 'horaFin debe ser posterior a horaInicio (el permiso no puede cruzar medianoche)' });
+      return res.status(400).json({ error: 'La hora de fin debe ser posterior a la de inicio (el permiso no puede cruzar la medianoche)' });
     }
 
     // No se bloquea si pide mas de lo disponible: un ingeniero puede quedar
@@ -92,7 +92,7 @@ router.post('/', requireAuth, async (req, res, next) => {
     res.status(201).json({
       ...compensacion,
       saldoResultante,
-      aviso: saldoResultante < 0 ? `Quedas con saldo en contra: ${saldoResultante}h. Se descuenta de las proximas horas extra que te aprueben.` : undefined,
+      aviso: saldoResultante < 0 ? `Quedas con saldo en contra: ${saldoResultante}h. Se descuenta de las próximas horas extra que te aprueben.` : undefined,
     });
   } catch (err) {
     next(err);
