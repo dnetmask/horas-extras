@@ -118,3 +118,29 @@ input, select {
 .error { color: var(--danger); font-size: 0.85rem; margin-top: 0.4rem; }
 .dev-login { margin-top: 1rem; text-align: left; }
 .dev-login input { width: 100%; margin-bottom: 0.5rem; }
+
+.toast-container {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 22rem;
+}
+.toast {
+  background: var(--navy);
+  color: white;
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  box-shadow: 0 4px 14px rgba(10, 37, 64, 0.25);
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.toast-visible { opacity: 1; transform: translateY(0); }
+.toast-error { background: var(--danger); }
+.toast-warn { background: var(--warn); }
+.toast-ok { background: var(--ok); }

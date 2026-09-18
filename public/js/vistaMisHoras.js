@@ -20,6 +20,11 @@ async function renderMisHoras(contenedor) {
   // Gerencia (y admin) tambien pueden aparecer como "lider" elegible - en
   // ocasiones el Gerente cumple ese papel para quienes le reportan directo.
   const lideres = usuarios.filter((u) => ['lider', 'gerencia', 'admin'].includes(u.rol) && u.activo);
+  // Precarga el lider organizacional asignado (Administracion) como opcion
+  // por defecto, para no obligar a elegir de cero cada vez que es siempre
+  // el mismo - igual se puede cambiar por otro en el momento.
+  const yo = usuarios.find((u) => u.id === usuarioSesion.id);
+  const liderPorDefecto = yo && yo.liderId;
 
   contenedor.innerHTML = `
     <div class="card">
@@ -31,8 +36,13 @@ async function renderMisHoras(contenedor) {
           <label>Hora fin <input type="time" name="horaFin" required /></label>
           <label>Líder (pre-aprobación)
             <select name="liderId" required>
-              <option value="" disabled selected>Selecciona un líder</option>
-              ${lideres.map((l) => `<option value="${l.id}">${l.nombre}${l.rol !== 'lider' ? ` (${l.rol})` : ''}</option>`).join('')}
+              <option value="" ${!liderPorDefecto ? 'disabled selected' : ''}>Selecciona un líder</option>
+              ${lideres
+                .map(
+                  (l) =>
+                    `<option value="${l.id}" ${l.id === liderPorDefecto ? 'selected' : ''}>${l.nombre}${l.rol !== 'lider' ? ` (${l.rol})` : ''}</option>`
+                )
+                .join('')}
             </select>
           </label>
           <label># Caso <input type="text" name="caso" required /></label>
@@ -50,6 +60,11 @@ async function renderMisHoras(contenedor) {
       <p style="font-size:0.85rem;color:#556">"Compensable" ya incluye el recargo de cada categoría convertido en más tiempo (Netmask compensa con tiempo, no con dinero) — es lo que se acredita a tu banco de horas. Ver <a href="#/recargos">Cómo se calculan las horas</a>.</p>
       ${registros.length === 0 ? '<p>Todavía no tienes registros.</p>' : renderTablaMisHoras(registros)}
     </div>
+
+    <div class="card">
+      <h2>Exportar mi historial</h2>
+      ${plantillaFormExportar()}
+    </div>
   `;
 
   document.getElementById('formHorasExtra').addEventListener('submit', async (ev) => {
@@ -59,6 +74,7 @@ async function renderMisHoras(contenedor) {
     errorBox.textContent = '';
     try {
       await api.crearHoras(datos);
+      mostrarToast('Solicitud enviada para pre-aprobación.', 'ok');
       renderMisHoras(contenedor);
     } catch (err) {
       errorBox.textContent = err.message;
@@ -70,7 +86,7 @@ function renderTablaMisHoras(registros) {
   return `
     <table>
       <thead>
-        <tr><th>Fecha/hora</th><th>Trabajado</th><th>Diurna</th><th>Nocturna</th><th>Dom/Fest diurna</th><th>Dom/Fest nocturna</th><th>Compensable</th><th>Líder</th><th>Estado</th></tr>
+        <tr><th>Fecha/hora</th><th>Trabajado</th><th>Diurna</th><th>Nocturna</th><th>Dom/Fest diurna</th><th>Dom/Fest nocturna</th><th>Compensable</th><th>Líder</th><th>Estado</th><th></th></tr>
       </thead>
       <tbody>
         ${registros
@@ -86,10 +102,22 @@ function renderTablaMisHoras(registros) {
             <td><strong>${r.horasCompensables}h</strong></td>
             <td>${r.lider ? r.lider.nombre : ''}</td>
             <td>${badgeEstado(r.estado)}${r.motivoRechazo ? `<div style="font-size:0.8rem;color:#c0362c">${r.motivoRechazo}</div>` : ''}</td>
+            <td>${r.estado === 'pendiente_lider' ? `<button class="btn btn-danger" onclick="eliminarMiRegistro('${r.id}')">Eliminar</button>` : ''}</td>
           </tr>`
           )
           .join('')}
       </tbody>
     </table>
   `;
+}
+
+async function eliminarMiRegistro(id) {
+  if (!confirm('¿Retirar esta solicitud? No se puede deshacer.')) return;
+  try {
+    await api.eliminarHoras(id);
+    mostrarToast('Solicitud eliminada.', 'ok');
+    renderMisHoras(document.getElementById('app'));
+  } catch (err) {
+    mostrarToast(err.message, 'error');
+  }
 }

@@ -46,8 +46,9 @@ async function decidirRegistro(id, decision) {
   }
   try {
     await api.decidir(id, decision, motivo);
+    mostrarToast(decision === 'aprobar' ? 'Solicitud aprobada.' : 'Solicitud rechazada.', 'ok');
     renderAprobaciones(document.getElementById('app'));
   } catch (err) {
-    alert(err.message);
+    mostrarToast(err.message, 'error');
   }
 }

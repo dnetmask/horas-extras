@@ -69,12 +69,18 @@ router.get('/mios', requireAuth, async (req, res, next) => {
 });
 
 // Detalle granular de un usuario puntual (todas sus horas extra +
-// compensaciones + saldo) - solo para administradores, para poder revisar a
-// cualquier ingeniero sin depender de que esa persona comparta pantalla.
-router.get('/de/:usuarioId', requireAuth, requireRole('admin'), async (req, res, next) => {
+// compensaciones + saldo). Un admin puede revisar a cualquiera; un lider
+// solo a quien lo tiene como "lider asignado" (su equipo) - para eso no
+// hace falta depender de que esa persona comparta pantalla.
+router.get('/de/:usuarioId', requireAuth, requireRole('lider', 'admin'), async (req, res, next) => {
   try {
     const usuario = await prisma.usuario.findUnique({ where: { id: req.params.usuarioId } });
     if (!usuario) return res.status(404).json({ error: 'No existe' });
+
+    const { rol, id: uid } = req.session.usuario;
+    if (rol === 'lider' && usuario.liderId !== uid) {
+      return res.status(403).json({ error: 'Esa persona no tiene tu usuario como lider asignado' });
+    }
 
     const [registros, compensaciones, saldo] = await Promise.all([
       prisma.horasExtra.findMany({
@@ -238,6 +244,40 @@ router.patch('/:id', requireAuth, async (req, res, next) => {
     });
 
     res.json(actualizado);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Retirar una solicitud creada por error - mismas condiciones que editar
+// (solo el dueño, solo mientras nadie la ha empezado a aprobar). No hay
+// "deshacer": si ya paso a pendiente_gerencia, hay que pedir que la
+// rechacen primero.
+router.delete('/:id', requireAuth, async (req, res, next) => {
+  try {
+    const registro = await prisma.horasExtra.findUnique({ where: { id: req.params.id } });
+    if (!registro) return res.status(404).json({ error: 'No existe' });
+    if (registro.ingenieroId !== req.session.usuario.id) {
+      return res.status(403).json({ error: 'Solo puedes eliminar tus propios registros' });
+    }
+    if (registro.estado !== 'pendiente_lider') {
+      return res.status(409).json({ error: 'Solo se puede eliminar mientras esta pendiente de aprobacion del lider' });
+    }
+
+    await prisma.$transaction(async (tx) => {
+      // El registro de auditoria queda aunque el registro se borre despues -
+      // es la constancia de que existio y quien lo elimino.
+      await registrarAuditoria(tx, {
+        tabla: 'horas_extra',
+        registroId: registro.id,
+        usuarioId: req.session.usuario.id,
+        accion: 'eliminar',
+        valorAntes: `${registro.fecha.toISOString().slice(0, 10)} ${registro.horaInicio}-${registro.horaFin} (${registro.horasTotales}h)`,
+      });
+      await tx.horasExtra.delete({ where: { id: registro.id } });
+    });
+
+    res.status(204).end();
   } catch (err) {
     next(err);
   }

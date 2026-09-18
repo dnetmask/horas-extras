@@ -23,14 +23,15 @@ async function calcularSaldo(ingenieroId) {
 }
 
 /**
- * Saldo de banco de horas de TODOS los usuarios activos, en dos consultas
- * agregadas (no una por usuario) - para el reporte que ve Gerencia con el
- * disponible de todo el equipo.
+ * Saldo de banco de horas de varios usuarios a la vez, en dos consultas
+ * agregadas (no una por usuario). Sin `liderId`, trae a todos los activos
+ * (vista de Gerencia/Admin); con `liderId`, solo a quienes tienen a esa
+ * persona como lider asignado (vista de un lider viendo "su equipo").
  */
-async function calcularSaldosDeTodos() {
+async function calcularSaldosDeTodos({ liderId } = {}) {
   const [usuarios, aprobadasPorUsuario, compensadasPorUsuario] = await Promise.all([
     prisma.usuario.findMany({
-      where: { activo: true },
+      where: liderId ? { activo: true, liderId } : { activo: true },
       select: { id: true, nombre: true, email: true, rol: true, liderId: true },
       orderBy: { nombre: 'asc' },
     }),

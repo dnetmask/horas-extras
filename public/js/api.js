@@ -30,6 +30,7 @@ const api = {
   misHoras: () => apiFetch('/api/horas-extra/mios'),
   crearHoras: (datos) => apiFetch('/api/horas-extra', { method: 'POST', body: JSON.stringify(datos) }),
   editarHoras: (id, datos) => apiFetch(`/api/horas-extra/${id}`, { method: 'PATCH', body: JSON.stringify(datos) }),
+  eliminarHoras: (id) => apiFetch(`/api/horas-extra/${id}`, { method: 'DELETE' }),
   horasDeUsuario: (usuarioId) => apiFetch(`/api/horas-extra/de/${usuarioId}`),
 
   pendientesAprobacion: () => apiFetch('/api/aprobaciones/pendientes'),

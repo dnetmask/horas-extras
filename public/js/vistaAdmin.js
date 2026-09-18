@@ -2,11 +2,6 @@ async function renderAdmin(contenedor) {
   contenedor.innerHTML = '<p>Cargando...</p>';
   const usuarios = await api.usuarios();
 
-  const opcionesLider = usuarios
-    .filter((u) => ['lider', 'admin'].includes(u.rol))
-    .map((u) => `<option value="${u.id}">${u.nombre}</option>`)
-    .join('');
-
   contenedor.innerHTML = `
     <div class="card">
       <h2>Precargar usuario</h2>
@@ -73,6 +68,7 @@ async function renderAdmin(contenedor) {
     errorBox.textContent = '';
     try {
       await api.crearUsuario(datos);
+      mostrarToast('Usuario precargado.', 'ok');
       renderAdmin(contenedor);
     } catch (err) {
       errorBox.textContent = err.message;
@@ -83,7 +79,8 @@ async function renderAdmin(contenedor) {
 async function actualizarUsuario(id, campo, valor) {
   try {
     await api.editarUsuario(id, { [campo]: valor });
+    mostrarToast('Usuario actualizado.', 'ok');
   } catch (err) {
-    alert(err.message);
+    mostrarToast(err.message, 'error');
   }
 }

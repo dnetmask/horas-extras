@@ -4,9 +4,10 @@ const VISTAS = {
   'mis-horas': { titulo: 'Mis horas extra', render: renderMisHoras, roles: ['ingeniero', 'lider', 'gerencia', 'admin'] },
   aprobaciones: { titulo: 'Aprobaciones', render: renderAprobaciones, roles: ['lider', 'gerencia', 'admin'] },
   banco: { titulo: 'Mi banco de horas', render: renderBanco, roles: ['ingeniero', 'lider', 'gerencia', 'admin'] },
-  equipo: { titulo: 'Horas del equipo', render: renderEquipo, roles: ['gerencia', 'admin'] },
+  equipo: { titulo: 'Horas del equipo', render: renderEquipo, roles: ['lider', 'gerencia', 'admin'] },
   recargos: { titulo: 'Cómo se calculan las horas', render: renderRecargos, roles: ['ingeniero', 'lider', 'gerencia', 'admin'] },
   admin: { titulo: 'Administración', render: renderAdmin, roles: ['admin'] },
+  ayuda: { titulo: 'Ayuda', render: renderAyuda, roles: ['ingeniero', 'lider', 'gerencia', 'admin'] },
 };
 
 function vistasVisiblesParaRol(rol) {
@@ -61,10 +62,12 @@ async function enrutar() {
   const clave = (location.hash.slice(2) || 'mis-horas').split('?')[0];
   renderNav();
 
-  // Ruta dinamica de solo-admin: #/usuario/<id> (detalle granular de una persona).
+  // Ruta dinamica: #/usuario/<id> (detalle granular de una persona) - admin
+  // ve a cualquiera, un lider solo a quien lo tiene como lider asignado (el
+  // backend valida esto tambien, aqui solo evita el intento innecesario).
   const matchUsuario = clave.match(/^usuario\/(.+)$/);
   if (matchUsuario) {
-    if (usuarioSesion.rol !== 'admin') {
+    if (!['lider', 'admin'].includes(usuarioSesion.rol)) {
       app.innerHTML = '<div class="card"><p>No tienes acceso a esta sección.</p></div>';
       return;
     }

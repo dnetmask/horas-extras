@@ -27,12 +27,13 @@ router.get('/mias', requireAuth, async (req, res, next) => {
   }
 });
 
-// Vista de Gerencia (y Admin): saldo de banco de horas de TODO el equipo,
-// no solo el propio. Cualquiera con estos roles la ve completa - no hace
-// falta ser el lider directo de cada persona.
-router.get('/todas', requireAuth, requireRole('gerencia', 'admin'), async (req, res, next) => {
+// Gerencia/Admin ven el saldo de TODO el mundo. Un lider ve solo el de las
+// personas que lo tienen a el como "lider asignado" (su equipo) - no hace
+// falta ser admin para revisar el banco de horas de los propios reportes.
+router.get('/todas', requireAuth, requireRole('lider', 'gerencia', 'admin'), async (req, res, next) => {
   try {
-    const saldos = await calcularSaldosDeTodos();
+    const { rol, id } = req.session.usuario;
+    const saldos = await calcularSaldosDeTodos(rol === 'lider' ? { liderId: id } : {});
     res.json(saldos);
   } catch (err) {
     next(err);

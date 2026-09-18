@@ -73,6 +73,12 @@ services:
       - "${NGINX_HTTPS_PORT:-8443}:443"
       - "${NGINX_HTTP_PORT:-8081}:80"
 
+# A proposito SIN nombre explicito ni STACK_SUFFIX: Docker Compose ya lo
+# prefija solo con el nombre del directorio del checkout (ej.
+# "horas-extras_horas-extras-db-data" en produccion), que es justo lo que
+# separa produccion de staging (dos directorios distintos) sin arriesgar
+# apuntar por accidente a un volumen nuevo/vacio. No agregar un "name:" aqui
+# ni STACK_SUFFIX - ya paso, y crea un volumen nuevo huerfano en vez de
+# reusar el real (ver historial de este archivo).
 volumes:
   horas-extras-db-data:
-    name: horas-extras-db-data${STACK_SUFFIX:-}

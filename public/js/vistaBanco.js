@@ -44,7 +44,7 @@ async function renderBanco(contenedor) {
     errorBox.textContent = '';
     try {
       const creada = await api.registrarCompensacion(datos);
-      if (creada.aviso) alert(creada.aviso);
+      mostrarToast(creada.aviso || 'Permiso registrado.', creada.aviso ? 'warn' : 'ok');
       renderBanco(contenedor);
     } catch (err) {
       errorBox.textContent = err.message;

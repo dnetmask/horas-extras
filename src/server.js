@@ -17,6 +17,7 @@ const aprobacionesRoutes = require('./routes/aprobaciones');
 const usuariosRoutes = require('./routes/usuarios');
 const compensacionesRoutes = require('./routes/compensaciones');
 const reglasRecargoRoutes = require('./routes/reglasRecargo');
+const exportarRoutes = require('./routes/exportar');
 
 const app = express();
 app.disable('x-powered-by');
@@ -48,6 +49,7 @@ app.use('/api/aprobaciones', aprobacionesRoutes);
 app.use('/api/usuarios', usuariosRoutes);
 app.use('/api/compensaciones', compensacionesRoutes);
 app.use('/api/reglas-recargo', reglasRecargoRoutes);
+app.use('/api/exportar', exportarRoutes);
 
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
