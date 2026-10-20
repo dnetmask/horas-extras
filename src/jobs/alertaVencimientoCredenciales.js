@@ -22,6 +22,9 @@ function diasRestantes(fechaISO) {
 }
 
 function fechaVencimientoCertificado() {
+  // En Vercel no hay certificado propio (la plataforma gestiona y renueva el
+  // TLS sola): sin archivo no hay nada que vigilar, y no es un error.
+  if (!fs.existsSync(config.certPath)) return null;
   try {
     const pem = fs.readFileSync(config.certPath, 'utf8');
     const cert = new crypto.X509Certificate(pem);

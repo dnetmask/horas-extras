@@ -5,6 +5,7 @@ const prisma = require('../db');
 const { requireAuth, requireRole } = require('../auth/middleware');
 const { registrarAuditoria } = require('../lib/auditLog');
 const { enviarCorreo } = require('../lib/mail');
+const { enSegundoPlano } = require('../lib/segundoPlano');
 const { solicitudAprobacion, decisionNotificada } = require('../lib/plantillasCorreo');
 
 const router = express.Router();
@@ -107,11 +108,11 @@ router.post('/:id/decidir', requireAuth, requireRole('lider', 'gerencia', 'admin
         motivo,
         quienDecidio: etapaLider ? 'tu líder' : 'gerencia',
       });
-      enviarCorreo({ para: registro.ingeniero.email, ...correo }).catch((e) => console.error(e.message));
+      enSegundoPlano(enviarCorreo({ para: registro.ingeniero.email, ...correo }), 'No se pudo notificar el rechazo');
     } else if (etapaLider) {
       const gerentes = await prisma.usuario.findMany({ where: { rol: 'gerencia', activo: true } });
       const correo = solicitudAprobacion({ registro: actualizado, ingenieroNombre: registro.ingeniero.nombre, paraQuien: 'gerencia' });
-      enviarCorreo({ para: gerentes.map((g) => g.email), ...correo }).catch((e) => console.error(e.message));
+      enSegundoPlano(enviarCorreo({ para: gerentes.map((g) => g.email), ...correo }), 'No se pudo notificar a gerencia');
     } else {
       const correo = decisionNotificada({
         registro: actualizado,
@@ -119,7 +120,7 @@ router.post('/:id/decidir', requireAuth, requireRole('lider', 'gerencia', 'admin
         aprobado: true,
         quienDecidio: 'gerencia',
       });
-      enviarCorreo({ para: registro.ingeniero.email, ...correo }).catch((e) => console.error(e.message));
+      enSegundoPlano(enviarCorreo({ para: registro.ingeniero.email, ...correo }), 'No se pudo notificar la aprobacion');
     }
 
     res.json(actualizado);

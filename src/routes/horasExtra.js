@@ -7,6 +7,7 @@ const { calcularHorasExtra, horasCompensablesDe } = require('../lib/recargos');
 const { construirContextoDeCalculo } = require('../lib/reglas');
 const { registrarAuditoria } = require('../lib/auditLog');
 const { enviarCorreo } = require('../lib/mail');
+const { enSegundoPlano } = require('../lib/segundoPlano');
 const { solicitudAprobacion } = require('../lib/plantillasCorreo');
 const { calcularSaldo } = require('../lib/saldoHoras');
 
@@ -150,9 +151,7 @@ router.post('/', requireAuth, async (req, res, next) => {
     // rol "gerencia" (el Gerente de Ingenieria) - ver src/routes/aprobaciones.js.
     if (lider.email) {
       const correo = solicitudAprobacion({ registro, ingenieroNombre: usuario.nombre, paraQuien: 'líder' });
-      enviarCorreo({ para: lider.email, ...correo }).catch((err) =>
-        console.error('No se pudo notificar al lider:', err.message)
-      );
+      enSegundoPlano(enviarCorreo({ para: lider.email, ...correo }), 'No se pudo notificar al lider');
     }
 
     res.status(201).json(registro);

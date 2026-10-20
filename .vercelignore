@@ -1,0 +1,18 @@
+# Nunca subir secretos ni datos locales a Vercel.
+.env
+.env.*
+certs/
+backups/
+*.dump
+*.sql
+*.sql.gz
+
+# Piezas exclusivas del despliegue Docker.
+Dockerfile
+docker-compose.yml
+docker-entrypoint.sh
+deploy/
+
+# Vercel instala dependencias en su propio build.
+node_modules/
+tests/

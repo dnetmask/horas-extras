@@ -16,7 +16,8 @@ autenticación propia (SSO con Microsoft Entra ID), despliegue propio.
   API propia del mismo origen.
 - Auth: SSO con Microsoft Entra ID (OIDC + PKCE).
 - Correo: Microsoft Graph API (`sendMail`), mismo App Registration del SSO.
-- Alertas: `node-cron` dentro del propio contenedor.
+- Alertas: `node-cron` dentro del propio contenedor (Docker), o Vercel Cron
+  llamando `GET /api/cron/diario` (Vercel).
 
 ## Desarrollo local
 
@@ -47,6 +48,12 @@ npm test
 Ver [`deploy/docker/LEEME-DOCKER.md`](deploy/docker/LEEME-DOCKER.md) —
 incluye cómo crear el Azure App Registration necesario para el SSO y el
 envío de correo.
+
+## Despliegue en Vercel + Neon
+
+Ver [`deploy/vercel/LEEME-VERCEL.md`](deploy/vercel/LEEME-VERCEL.md). El
+mismo código corre en ambos sitios: `src/server.js` exporta la app y solo
+abre puerto y programa node-cron cuando no está en Vercel.
 
 ## Modelo de datos y motor de recargos
 

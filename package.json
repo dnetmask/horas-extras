@@ -14,11 +14,13 @@
     "prisma:migrate": "prisma migrate deploy",
     "prisma:migrate:dev": "prisma migrate dev",
     "seed": "node prisma/seed.js",
+    "vercel-build": "node scripts/vercel-build.js",
     "test": "node --test tests/"
   },
   "dependencies": {
     "@azure/msal-node": "^2.16.2",
     "@prisma/client": "^5.20.0",
+    "@vercel/functions": "^3.10.1",
     "connect-pg-simple": "^10.0.0",
     "dotenv": "^16.4.5",
     "exceljs": "^4.4.0",
