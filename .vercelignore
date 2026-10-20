@@ -3,9 +3,11 @@
 .env.*
 certs/
 backups/
-*.dump
-*.sql
-*.sql.gz
+# Respaldos sueltos en la raiz. Ojo: un "*.sql" sin "/" tambien excluiria
+# prisma/migrations/*/migration.sql y el build no podria migrar la base.
+/*.dump
+/*.sql
+/*.sql.gz
 
 # Piezas exclusivas del despliegue Docker.
 Dockerfile
