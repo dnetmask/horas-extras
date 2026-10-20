@@ -6,3 +6,6 @@ certs/*.pem
 backups/
 .vercel/
 *.dump
+
+.vercel
+.env*
